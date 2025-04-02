@@ -1,0 +1,2 @@
+# DhiCode
+Dhivehi Programming Language
