@@ -44,8 +44,8 @@ Function with Return:
 ## How to Run (Current State - Parser Test)
 
 1.  Ensure you have Python 3.7+ installed.
-2.  Clone this repository: `git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY_NAME.git`
-3.  Navigate to the directory: `cd YOUR_REPOSITORY_NAME`
+2.  Clone this repository: `git clone link.git`
+3.  Navigate to the directory: `cd `
 4.  Create/modify the `main.dhi` file with DhiCode syntax supported by the current parser.
 5.  Run the parser test: `python parser.py`
 6.  Observe the output for Parser Errors and the generated AST structure.
