@@ -3,10 +3,33 @@ Dhivehi Programming Language
 # DhiCode Interpreter
 
 An experimental interpreter for **DhiCode**, a concept programming language using the Dhivehi (Thaana) script for keywords and identifiers.
+Core Concepts & Keywords:
+English Concept	DhiCode Keyword (Thaana)	Transliteration	Meaning/Notes
+Variable Assignment	ކަނޑައަޅާ	kanda'alhaa	Determine / Set / Assign
+If	ނަމަ	nama	If
+Else	ނޫންނަމަ	noonnama	Otherwise / Else
+While	ހިނދު	hindhu	While / During
+Function Definition	ވަޒީފާ	vazeefaa	Function / Task / Job
+Return (from func)	ފޮނުވާ	fonuvaa	Send back / Return
+Print / Output	ދައްކާ	dhakkaa	Show / Display / Print
+True	އާން	aan	Yes / True
+False	ނޫން	noon	No / False
+End of Block	ނިމުނީ	nimunee	Finished / Ended
+And (Logical)	އަދި	adhi	And
+Or (Logical)	ނުވަތަ	nuvatha	Or
+Comment	//	//	(Using common // for ease, text can be Thaana)
 
 ## Project Goal
 
 To explore the feasibility and challenges of creating a programming language tailored for native Dhivehi speakers, aiming for readability and educational value.
+Function with Return:
+ވަޒީފާ އެއްކުރޭ(އަދަދު1, އަދަދު2)
+    ކަނޑައަޅާ ޖުމްލަ = އަދަދު1 + އަދަދު2
+    ފޮނުވާ ޖުމްލަ
+ނިމުނީ
+
+ކަނޑައަޅާ ނަތީޖާ = އެއްކުރޭ(10, 5)
+ދައްކާ ނަތީޖާ // Output: 15
 
 ## Current Status (As of [Date])
 
