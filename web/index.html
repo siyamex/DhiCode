@@ -3,78 +3,370 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DhiCode Playground | ދިވެހި ކޯޑު</title>
+
+  <!-- ==================== Primary SEO & Metadata ==================== -->
+  <title>DhiCode (ދިވެހި ކޯޑު) | ދިވެހި ބަހުން ކޯޑުކުރާ ޕްރޮގްރާމިންގ ލެންގުއޭޖް</title>
+  <meta name="title" content="DhiCode (ދިވެހި ކޯޑު) | ދިވެހި ބަހުން ކޯޑުކުރާ ޕްރޮގްރާމިންގ ލެންގުއޭޖް">
+  <meta name="description" content="DhiCode is a modern, expressive programming language designed for native Dhivehi (Thaana) speakers. Features an in-browser WebAssembly playground, Python interpreter, LLVM native compiler, and official VS Code extension.">
+  <meta name="keywords" content="DhiCode, Dhivehi programming language, Thaana code, Maldives programming, ދިވެހި ކޯޑު, ތާނަ, ދިވެހިބަސް, ދިވެހިރާއްޖެ, programming in thaana">
+  <meta name="author" content="siyamex">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://siyamex.github.io/DhiCode/">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇲🇻</text></svg>">
+
+  <!-- ==================== Open Graph / Facebook ==================== -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://siyamex.github.io/DhiCode/">
+  <meta property="og:title" content="DhiCode (ދިވެހި ކޯޑު) - Modern Dhivehi Programming Language">
+  <meta property="og:description" content="A modern, expressive programming language designed for native Dhivehi (Thaana) speakers with WebAssembly playground and LLVM native compiler.">
+  <meta property="og:image" content="https://siyamex.github.io/DhiCode/social-card.svg">
+  <meta property="og:locale" content="dv_MV">
+  <meta property="og:site_name" content="DhiCode">
+
+  <!-- ==================== Twitter Card ==================== -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://siyamex.github.io/DhiCode/">
+  <meta name="twitter:title" content="DhiCode (ދިވެހި ކޯޑު) - Modern Dhivehi Programming Language">
+  <meta name="twitter:description" content="A modern programming language in Dhivehi (Thaana). Test live in the WebAssembly playground!">
+  <meta name="twitter:image" content="https://siyamex.github.io/DhiCode/social-card.svg">
+
+  <!-- ==================== Schema.org JSON-LD ==================== -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "DhiCode",
+    "alternateName": "ދިވެހި ކޯޑު",
+    "operatingSystem": "Cross-platform (Windows, macOS, Linux, Web)",
+    "applicationCategory": "DeveloperApplication",
+    "programmingLanguage": "Dhivehi / Thaana",
+    "url": "https://siyamex.github.io/DhiCode/",
+    "author": {
+      "@type": "Person",
+      "name": "siyamex",
+      "url": "https://github.com/siyamex"
+    },
+    "description": "An expressive, native programming language designed for Dhivehi (Thaana) speakers, featuring an interactive WebAssembly playground, Python tree-walk interpreter, LLVM native compiler, and VS Code extension.",
+    "license": "https://creativecommons.org/publicdomain/zero/1.0/"
+  }
+  </script>
+
+  <!-- Styles & Fonts -->
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Noto+Sans+Thaana:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Noto+Sans+Thaana:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
 </head>
 <body>
-  <header class="app-header">
-    <div class="header-brand">
-      <span class="flag-icon">🇲🇻</span>
-      <h1>DhiCode <span class="dhivehi-sub">ދިވެހި ކޯޑު</span></h1>
-      <span class="badge">WebAssembly</span>
-    </div>
 
-    <div class="header-controls">
-      <div class="select-wrapper">
-        <label for="example-select">މިސާލު:</label>
-        <select id="example-select">
-          <option value="hello">މަރުޙަބާ (Hello World)</option>
-          <option value="lists">ލިސްޓާއި ކޮންމެ ލޫޕް (Lists & Loops)</option>
-          <option value="factorial">ފެކްޓޯރިއަލް (Recursion)</option>
-          <option value="math">ހިސާބު މޮޑިއުލް (Math StdLib)</option>
-          <option value="trycatch">ކުށް ސަލާމަތްކުރުން (Try/Catch)</option>
-        </select>
+  <!-- Ambient Glow Backgrounds -->
+  <div class="glow-orb-1"></div>
+  <div class="glow-orb-2"></div>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-brand">
+        <span class="flag">🇲🇻</span>
+        <span class="en-name">DhiCode</span>
+        <span class="dv-name">ދިވެހި ކޯޑު</span>
       </div>
 
-      <button id="btn-dir" class="btn btn-secondary" title="ބަދަލުކުރޭ RTL / LTR">
-        <span id="dir-icon">🔀</span> RTL
-      </button>
+      <ul class="nav-links">
+        <li><a href="#playground">ޕްލޭގްރައުންޑް</a></li>
+        <li><a href="#features">ޚާއްޞަ ސިފަތައް</a></li>
+        <li><a href="#keywords">ކީވޯޑުތައް</a></li>
+        <li><a href="https://github.com/siyamex/DhiCode#readme" target="_blank">ލިޔުންތައް (Docs)</a></li>
+      </ul>
 
-      <button id="btn-clear" class="btn btn-secondary">
-        ފޮހެލާ (Clear)
-      </button>
+      <div class="nav-actions">
+        <button id="btn-dir" class="btn btn-secondary btn-icon" title="އަކުރުގެ މިސްރާބު ބަދަލުކުރޭ">
+          <span id="dir-icon">🔀</span> RTL
+        </button>
+        <a href="https://github.com/siyamex/DhiCode" target="_blank" class="btn btn-secondary">
+          ⭐ GitHub
+        </a>
+        <a href="#playground" class="btn btn-primary">
+          ▶ ޓެސްޓުކޮށްލާ
+        </a>
+      </div>
+    </div>
+  </nav>
 
-      <button id="btn-run" class="btn btn-primary">
-        ▶ ހިންގާ (Run)
-      </button>
+  <!-- Hero Section -->
+  <header class="hero-section">
+    <div class="container">
+      <div class="hero-pill">
+        ✨ ދިވެހި ބަހުގެ ފުރަތަމަ ޒަމާނީ ޕްރޮގްރާމިންގ ލެންގުއޭޖް
+      </div>
 
-      <a href="https://github.com/siyamex/DhiCode" target="_blank" class="btn btn-github">
-        GitHub
-      </a>
+      <h1 class="hero-title">
+        ދިވެހި ބަހުން <span class="text-gradient">ކޯޑުކުރަމާ</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        ތާނަ އަކުރުން ކޯޑު ލިޔުމަށް ފަރުމާކުރެވިފައިވާ، އިންޓަރޕްރެޓަރާއި، އެލް.އެލް.ވީ.އެމް (LLVM) ނޭޓިވް ކޮމްޕައިލަރާއި، ވީއެސް ކޯޑު އެކްސްޓެންޝަން އެކުލެވިގެންވާ ޒަމާނީ ޕްރޮގްރާމިންގ ލެންގުއޭޖް.
+      </p>
+
+      <div class="hero-cta">
+        <a href="#playground" class="btn btn-primary" style="font-size: 1.05rem; padding: 12px 28px;">
+          ▶ ވަގުތުން ޓެސްޓުކޮށްލާ (Live IDE)
+        </a>
+        <a href="https://github.com/siyamex/DhiCode" target="_blank" class="btn btn-secondary" style="font-size: 1.05rem; padding: 12px 28px;">
+          📦 ޑައުންލޯޑް / GitHub
+        </a>
+      </div>
+
+      <!-- Quickstart Command -->
+      <div class="quickstart-box">
+        <span class="prompt">$</span>
+        <span id="quick-cmd">git clone https://github.com/siyamex/DhiCode.git &amp;&amp; python dhicode.py run main.dhi</span>
+        <button id="btn-copy-cmd" title="ކޮޕީކުރޭ">📋</button>
+      </div>
     </div>
   </header>
 
-  <main class="playground-container">
-    <!-- Editor Pane -->
-    <section class="pane editor-pane">
-      <div class="pane-header">
-        <span class="pane-title">📝 ކޯޑު އެޑިޓަރ (main.dhi)</span>
-        <span class="shortcut-hint">Ctrl + Enter / Cmd + Enter އިން ހިންގާ</span>
+  <!-- Live In-Browser Web IDE Section -->
+  <section class="playground-section" id="playground">
+    <div class="container">
+      <div class="section-header">
+        <h2>އިންޓަރނެޓް ޕްލޭގްރައުންޑް</h2>
+        <p>ކޮމްޕިއުޓަރަށް އެއްވެސް އެއްޗެއް އިންސްޓޯލްކުރުމަކާ ނުލައި ބްރައުޒަރ ތެރޭގައި ދިވެހި ކޯޑު ހިންގާލައްވާ!</p>
       </div>
-      <div class="editor-wrapper">
-        <textarea id="code-editor" spellcheck="false" placeholder="މިތަނުގައި ދިވެހި ކޯޑު ލިޔުއްވާ..."></textarea>
-      </div>
-    </section>
 
-    <!-- Terminal Output Pane -->
-    <section class="pane terminal-pane">
-      <div class="pane-header">
-        <span class="pane-title">💻 ނަތީޖާ (Output Terminal)</span>
-        <span id="runtime-status" class="status-indicator loading">ލޯޑުވަނީ...</span>
-      </div>
-      <div class="terminal-body" id="terminal-output">
-        <div class="terminal-welcome">
-          🇲🇻 DhiCode Playground އަށް މަރުޙަބާ!<br>
-          ޕައިތަން Wasm ރަންޓައިމް ތައްޔާރުވަނީ...
+      <div class="ide-window">
+        <!-- Tab & Controls Bar -->
+        <div class="ide-header">
+          <div class="ide-tabs" id="example-tabs">
+            <button class="ide-tab active" data-example="hello">1. މަރުޙަބާ</button>
+            <button class="ide-tab" data-example="lists">2. ލިސްޓާއި ލޫޕް</button>
+            <button class="ide-tab" data-example="dict">3. ރަދީފު</button>
+            <button class="ide-tab" data-example="factorial">4. ފެކްޓޯރިއަލް</button>
+            <button class="ide-tab" data-example="math">5. ހިސާބު</button>
+            <button class="ide-tab" data-example="trycatch">6. ކުށް ސަލާމަތްކުރުން</button>
+          </div>
+
+          <div class="ide-actions">
+            <span id="runtime-status" class="status-badge loading">Wasm ލޯޑުވަނީ...</span>
+            <button id="btn-clear" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem;">
+              ފޮހެލާ
+            </button>
+            <button id="btn-run" class="btn btn-primary" style="padding: 6px 16px; font-size: 0.88rem;">
+              ▶ ހިންގާ (Ctrl+Enter)
+            </button>
+          </div>
+        </div>
+
+        <!-- Split Workspace -->
+        <div class="ide-workspace">
+          <!-- Editor -->
+          <div class="editor-box">
+            <div class="editor-bar">
+              <span>main.dhi</span>
+              <button id="btn-copy-code" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.75rem;">
+                ކޮޕީ
+              </button>
+            </div>
+            <textarea id="code-editor" spellcheck="false" placeholder="މިތަނުގައި ދިވެހި ކޯޑު ލިޔުއްވާ..."></textarea>
+          </div>
+
+          <!-- Terminal Console -->
+          <div class="terminal-box">
+            <div class="terminal-bar">
+              <span>Output Console (ޓާމިނަލް)</span>
+              <span id="exec-time" style="color: var(--accent-emerald);"></span>
+            </div>
+            <div class="terminal-body" id="terminal-output">
+              <div class="terminal-dim">
+                🇲🇻 DhiCode Playground އަށް މަރުޙަބާ!<br>
+                ރަންޓައިމް ލޯޑުވަނީ، މަޑުކޮށްލައްވާ...
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Info Bar -->
+        <div class="ide-footer-bar">
+          <span>ފޮންޓް: Faruma / Faseyha / Noto Sans Thaana</span>
+          <span>WebAssembly Powered Runtime</span>
         </div>
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
 
+  <!-- Bento Grid Features Showcase -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>ކީއްވެ DhiCode؟</h2>
+        <p>ދިވެހި ބަހުން ޕްރޮގްރާމްކުރުމަށް ފަރުމާކުރެވިފައިވާ އެންމެ ފުރިހަމަ ވަޞީލަތްތައް</p>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Card 1 -->
+        <div class="bento-card span-2">
+          <span class="card-icon">🇲🇻</span>
+          <h3>ދިވެހި ބަހުގެ ފުރިހަމަ ތާނަ އަކުރުގެ ބާރު</h3>
+          <p>
+            ތާނަ އަކުރުތަކާއި، ފިލިތައް (Fili) އަދި ސުކުން ފަސޭހަކަމާއެކު ދެނެގަނެވޭނެހެން ލެކްސަރ އާއި ޕާސަރ ވަނީ ތައްޔާރުކުރެވިފައި. ފަރުމާ (Faruma) އަދި ފަސޭހަ (Faseyha) ފޮންޓުގައި ފުރިހަމައަށް އެޅޭނެ.
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bento-card">
+          <span class="card-icon">⚡</span>
+          <h3>ދެ އިންޖީނުގެ ބާރު (Dual Engine)</h3>
+          <p>
+            ވަގުތުން ސްކްރިޕްޓް ހިންގާލުމަށް ޕައިތަން އިންޓަރޕްރެޓަރ، އަދި ހަލުވި ނޭޓިވް ބައިނަރީ (.o / .exe) އުފެއްދުމަށް އެލް.އެލް.ވީ.އެމް (LLVM) ބެކްއެންޑް.
+          </p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bento-card">
+          <span class="card-icon">📊</span>
+          <h3>ލިސްޓާއި ރަދީފު (Lists &amp; Dicts)</h3>
+          <p>
+            ލިސްޓު ހެދުމާއި، އިންޑެކްސް ކުރުން، އަޅާ() އަދި ނަގާ() ފަންކްޝަންތައް، ރަދީފު (Dictionary) އަދި ކޮންމެ (For-Each) ލޫޕް.
+          </p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="bento-card">
+          <span class="card-icon">🛡️</span>
+          <h3>ކުށް ސަލާމަތްކުރުން (Try/Catch)</h3>
+          <p>
+            ޕްރޮގްރާމް ނުހުއްޓި ކުރިއަށް ގެންދިއުމަށް މަސައްކަތްކުރޭ ... ކުށެއް_ފެނިއްޖެނަމަ ބްލޮކްތައް އަދި ތަފްޞީލީ ވިޝުއަލް ކުށުގެ ރިޕޯޓު.
+          </p>
+        </div>
+
+        <!-- Card 5 -->
+        <div class="bento-card">
+          <span class="card-icon">🧩</span>
+          <h3>ވީއެސް ކޯޑު އެކްސްޓެންޝަން (VS Code)</h3>
+          <p>
+            ކޯޑު ކުލަގަދަކޮށް ދައްކައިދޭ ސިންޓެކްސް ހައިލައިޓިންގ، އޮޓޯ-ކްލޯސިންގ ބްރެކެޓްތައް، އަދި އަވަހަށް ކޯޑު ލިޔުމަށް ޚާއްޞަ ސްނިޕެޓްތައް.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Keywords Reference Table -->
+  <section class="keywords-section" id="keywords">
+    <div class="container">
+      <div class="section-header">
+        <h2>ކީވޯޑުތަކުގެ ގައިޑް</h2>
+        <p>ދިވެހި ކޯޑުގައި ބޭނުންކުރާ މައިގަނޑު ބަސްތައް</p>
+      </div>
+
+      <div class="keywords-table-card">
+        <table class="keywords-table">
+          <thead>
+            <tr>
+              <th>ކީވޯޑު</th>
+              <th>އިނގިރޭސި މާނަ</th>
+              <th>ބާވަތް</th>
+              <th>މިސާލު</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge-kw">ކަނޑައަޅާ</span></td>
+              <td>let / define</td>
+              <td><span class="badge-cat">ވެރިއަބަލް</span></td>
+              <td><code>ކަނޑައަޅާ އަގު = 50</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">ވަޒީފާ</span></td>
+              <td>function</td>
+              <td><span class="badge-cat">ފަންކްޝަން</span></td>
+              <td><code>ވަޒީފާ ހިސާބު() ... ނިމުނީ</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">ފޮނުވާ</span></td>
+              <td>return</td>
+              <td><span class="badge-cat">ފަންކްޝަން</span></td>
+              <td><code>ފޮނުވާ ނަތީޖާ</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">ދައްކާ</span></td>
+              <td>print / output</td>
+              <td><span class="badge-cat">އައުޓްޕުޓް</span></td>
+              <td><code>ދައްކާ "ސަލާމް"</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">ނަމަ</span></td>
+              <td>if</td>
+              <td><span class="badge-cat">ޝަރުޠު</span></td>
+              <td><code>ނަމަ އުމުރު &gt; 18 ... ނިމުނީ</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">ނޫންނަމަ</span></td>
+              <td>else</td>
+              <td><span class="badge-cat">ޝަރުޠު</span></td>
+              <td><code>ނޫންނަމަ ... ނިމުނީ</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">ހިނދު</span></td>
+              <td>while</td>
+              <td><span class="badge-cat">ލޫޕް</span></td>
+              <td><code>ހިނދު ގުނާ &lt;= 10 ... ނިމުނީ</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">ކޮންމެ</span></td>
+              <td>for-each</td>
+              <td><span class="badge-cat">ލޫޕް</span></td>
+              <td><code>ކޮންމެ އެތި ތެރޭގައި ލިސްޓު ... ނިމުނީ</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">މަސައްކަތްކުރޭ</span></td>
+              <td>try</td>
+              <td><span class="badge-cat">ކުށް ސަލާމަތް</span></td>
+              <td><code>މަސައްކަތްކުރޭ ... ކުށެއް_ފެނިއްޖެނަމަ</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">ގެނޭ</span></td>
+              <td>import</td>
+              <td><span class="badge-cat">މޮޑިއުލް</span></td>
+              <td><code>ގެނޭ "ހިސާބު"</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">އާން / ނޫން</span></td>
+              <td>true / false</td>
+              <td><span class="badge-cat">ބޫލިއަން</span></td>
+              <td><code>ކަނޑައަޅާ ތެދު = އާން</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <span class="flag">🇲🇻</span> <strong>DhiCode (ދިވެހި ކޯޑު)</strong>
+      </div>
+      <p>
+        ހުރިހާ ދިވެހިންނަށް ހިލޭ އަދި އޯޕަންސޯސްކޮށް ލިބޭނެހެން އުފައްދާފައިވާ ޕްރޮގްރާމިންގ ލެންގުއޭޖެއް.<br>
+        Dedicated to the public domain under Creative Commons CC0 1.0 Universal.
+      </p>
+      <ul class="footer-links">
+        <li><a href="https://github.com/siyamex/DhiCode" target="_blank">GitHub Repository</a></li>
+        <li><a href="https://github.com/siyamex/DhiCode/issues" target="_blank">ރިޕޯޓުކުރޭ (Issues)</a></li>
+        <li><a href="https://github.com/siyamex/DhiCode/blob/main/LICENSE" target="_blank">ލައިސަންސް (License)</a></li>
+      </ul>
+      <p style="font-size: 0.8rem; color: #475569;">
+        Made with ❤️ for Maldives by <a href="https://github.com/siyamex" target="_blank" style="color: #64748b;">siyamex</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
   <script src="examples.js"></script>
   <script src="app.js"></script>
 </body>

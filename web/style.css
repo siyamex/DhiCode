@@ -1,40 +1,360 @@
-:root {
-  --bg-primary: #12141a;
-  --bg-secondary: #1a1d26;
-  --bg-tertiary: #242938;
-  --border-color: #31384e;
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --accent: #38bdf8;
-  --accent-hover: #0284c7;
-  --success: #3fb950;
-  --warning: #d29922;
-  --error: #f85149;
-  --font-thaana: 'Noto Sans Thaana', 'Faruma', 'MV Boli', sans-serif;
-  --font-mono: 'Fira Code', monospace;
+/* ==========================================================================
+   DhiCode Web Portal - Modern Developer-First Design System
+   Fonts: Faruma, Faseyha, MV Faseyha, Noto Sans Thaana
+   ========================================================================== */
+
+/* --- 1. Authentic Dhivehi Web Fonts --- */
+@font-face {
+  font-family: 'Faruma';
+  src: local('Faruma'), local('MV Faruma'),
+       url('https://cdn.jsdelivr.net/gh/siyamex/mv-fonts@master/faruma.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/siyamex/mv-fonts@master/faruma.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
+@font-face {
+  font-family: 'Faseyha';
+  src: local('Faseyha'), local('A_Faseyha'), local('MV Faseyha'),
+       url('https://cdn.jsdelivr.net/gh/siyamex/mv-fonts@master/faseyha.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/siyamex/mv-fonts@master/faseyha.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* --- 2. CSS Variables & Theme --- */
+:root {
+  --bg-body: #07090e;
+  --bg-surface: #0d121d;
+  --bg-surface-elevated: #131b2a;
+  --bg-card: rgba(19, 27, 42, 0.7);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-active: rgba(56, 189, 248, 0.4);
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --primary: #38bdf8;
+  --primary-glow: rgba(56, 189, 248, 0.25);
+  --primary-hover: #0284c7;
+  
+  --accent-indigo: #818cf8;
+  --accent-purple: #c084fc;
+  --accent-emerald: #34d399;
+  --accent-amber: #fbbf24;
+  --accent-rose: #f43f5e;
+  
+  --font-thaana: 'Faruma', 'Faseyha', 'MV Faseyha', 'A_Faseyha', 'Noto Sans Thaana', sans-serif;
+  --font-mono: 'Fira Code', 'SF Mono', Consolas, monospace;
+  
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+  
+  --shadow-glow: 0 0 50px -10px var(--primary-glow);
+}
+
+/* --- 3. Base Styles & Reset --- */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-body {
-  font-family: var(--font-thaana);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+html {
+  scroll-behavior: smooth;
 }
 
-/* Header */
-.app-header {
-  background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
+body {
+  font-family: var(--font-thaana);
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  line-height: 1.8;
+  overflow-x: hidden;
+  direction: rtl;
+  text-align: right;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+/* Background Gradients */
+.glow-orb-1 {
+  position: absolute;
+  top: -120px;
+  left: 20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glow-orb-2 {
+  position: absolute;
+  top: 400px;
+  right: 10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(129, 140, 248, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Container */
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* --- 4. Glassmorphic Navigation Bar --- */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(13, 18, 29, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 14px 0;
+}
+
+.navbar .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.nav-brand .flag {
+  font-size: 1.6rem;
+}
+
+.nav-brand .en-name {
+  font-family: var(--font-mono);
+  letter-spacing: -0.5px;
+}
+
+.nav-brand .dv-name {
+  color: var(--primary);
+  font-size: 1.15rem;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.nav-links a:hover {
+  color: var(--primary);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Button Component */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px;
+  font-family: var(--font-thaana);
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 20px -2px rgba(37, 99, 235, 0.4);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+  transform: translateY(-1px);
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.btn-secondary:hover {
+  background: #1e293b;
+  border-color: var(--primary);
+}
+
+.btn-icon {
+  padding: 8px 12px;
+}
+
+/* --- 5. Hero Section --- */
+.hero-section {
+  padding: 80px 0 60px;
+  text-align: center;
+  position: relative;
+}
+
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: var(--primary);
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.hero-title {
+  font-size: 3.2rem;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 20px;
+  letter-spacing: -0.5px;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  max-width: 760px;
+  margin: 0 auto 36px;
+  line-height: 1.9;
+}
+
+.hero-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+/* Terminal Quickstart Snippet */
+.quickstart-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  direction: ltr;
+  text-align: left;
+}
+
+.quickstart-box .prompt {
+  color: var(--primary);
+  user-select: none;
+}
+
+.quickstart-box button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.15s;
+}
+
+.quickstart-box button:hover {
+  color: var(--primary);
+}
+
+/* --- 6. Live In-Browser Web IDE --- */
+.playground-section {
+  padding: 40px 0 80px;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.section-header h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.section-header p {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+}
+
+.ide-window {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.ide-window:focus-within {
+  border-color: var(--border-active);
+}
+
+/* IDE Header Bar */
+.ide-header {
+  background: #090d15;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -42,213 +362,125 @@ body {
   gap: 12px;
 }
 
-.header-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.header-brand h1 {
-  font-size: 1.25rem;
-  font-weight: 700;
+.ide-tabs {
   display: flex;
   align-items: center;
   gap: 8px;
+  overflow-x: auto;
 }
 
-.dhivehi-sub {
-  font-size: 1rem;
-  color: var(--accent);
+.ide-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-thaana);
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
 }
 
-.flag-icon {
-  font-size: 1.5rem;
+.ide-tab:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.badge {
-  background-color: var(--bg-tertiary);
-  color: var(--accent);
-  font-size: 0.75rem;
-  font-family: var(--font-mono);
-  padding: 2px 8px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
+.ide-tab.active {
+  background: var(--bg-surface-elevated);
+  border-color: var(--border-subtle);
+  color: var(--primary);
+  font-weight: 600;
 }
 
-.header-controls {
+.ide-actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
 }
 
-.select-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.9rem;
-}
-
-select {
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-family: var(--font-thaana);
-  font-size: 0.85rem;
-  cursor: pointer;
-  outline: none;
-}
-
-select:focus {
-  border-color: var(--accent);
-}
-
-/* Buttons */
-.btn {
-  padding: 7px 16px;
-  border-radius: 6px;
-  border: none;
-  font-family: var(--font-thaana);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
+.status-badge {
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  text-decoration: none;
-  transition: all 0.15s ease-in-out;
+  font-family: var(--font-mono);
 }
 
-.btn-primary {
-  background-color: #2563eb;
-  color: #ffffff;
+.status-badge.loading {
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--accent-amber);
 }
 
-.btn-primary:hover {
-  background-color: #1d4ed8;
+.status-badge.ready {
+  background: rgba(52, 211, 153, 0.12);
+  color: var(--accent-emerald);
 }
 
-.btn-secondary {
-  background-color: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+/* IDE Split Workspace */
+.ide-workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 440px;
+  background: #06090f;
 }
 
-.btn-secondary:hover {
-  background-color: #2e3547;
-}
-
-.btn-github {
-  background-color: #24292f;
-  color: #ffffff;
-  border: 1px solid #444c56;
-}
-
-.btn-github:hover {
-  background-color: #32383f;
-}
-
-/* Main Container */
-.playground-container {
-  flex: 1;
-  display: flex;
-  height: calc(100vh - 65px);
-  overflow: hidden;
-}
-
-.pane {
-  flex: 1;
+.editor-box {
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-primary);
-  overflow: hidden;
+  border-left: 1px solid var(--border-subtle);
+  position: relative;
 }
 
-.editor-pane {
-  border-left: 1px solid var(--border-color);
-}
-
-.pane-header {
-  background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
+.editor-bar, .terminal-bar {
+  background: #0a0e17;
   padding: 8px 16px;
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
-}
-
-.pane-title {
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.shortcut-hint {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-.status-indicator {
-  font-size: 0.8rem;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.status-indicator.loading {
-  background-color: rgba(210, 153, 34, 0.2);
-  color: var(--warning);
-}
-
-.status-indicator.ready {
-  background-color: rgba(63, 185, 80, 0.2);
-  color: var(--success);
-}
-
-/* Editor */
-.editor-wrapper {
-  flex: 1;
-  display: flex;
-  position: relative;
-  overflow: hidden;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 #code-editor {
   flex: 1;
   width: 100%;
   height: 100%;
-  background-color: #0d1117;
-  color: #c9d1d9;
+  background: transparent;
+  color: #e2e8f0;
   border: none;
   outline: none;
-  padding: 16px;
+  padding: 16px 20px;
   font-family: var(--font-thaana), var(--font-mono);
-  font-size: 1.1rem;
-  line-height: 1.8;
+  font-size: 1.15rem;
+  line-height: 1.9;
   resize: none;
   white-space: pre;
   tab-size: 4;
 }
 
-/* Terminal */
-.terminal-body {
+/* Terminal Box */
+.terminal-box {
+  display: flex;
+  flex-direction: column;
+  background: #04060a;
+}
+
+#terminal-output {
   flex: 1;
-  background-color: #06090e;
-  padding: 16px;
+  padding: 16px 20px;
   font-family: var(--font-thaana), var(--font-mono);
-  font-size: 1rem;
-  line-height: 1.7;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #cbd5e1;
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
-}
-
-.terminal-welcome {
-  color: var(--text-secondary);
-  border-bottom: 1px dashed var(--border-color);
-  padding-bottom: 12px;
-  margin-bottom: 12px;
 }
 
 .terminal-line {
@@ -256,20 +488,202 @@ select:focus {
 }
 
 .terminal-error {
-  color: var(--error);
+  color: var(--accent-rose);
 }
 
 .terminal-success {
-  color: var(--success);
+  color: var(--accent-emerald);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .playground-container {
-    flex-direction: column;
+.terminal-dim {
+  color: var(--text-muted);
+}
+
+.ide-footer-bar {
+  background: #0a0e17;
+  border-top: 1px solid var(--border-subtle);
+  padding: 8px 20px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* --- 7. Bento Grid Features Showcase --- */
+.features-section {
+  padding: 80px 0;
+  background: radial-gradient(ellipse at bottom, rgba(30, 41, 59, 0.4) 0%, transparent 70%);
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.bento-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.bento-card:hover {
+  border-color: var(--border-active);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.4);
+}
+
+.card-icon {
+  font-size: 2rem;
+  margin-bottom: 16px;
+  display: inline-block;
+}
+
+.bento-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.bento-card p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.8;
+}
+
+.bento-card.span-2 {
+  grid-column: span 2;
+}
+
+/* --- 8. Keywords & Grammar Cheat Sheet --- */
+.keywords-section {
+  padding: 80px 0;
+}
+
+.keywords-table-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+}
+
+.keywords-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+}
+
+.keywords-table th {
+  background: #090d15;
+  color: var(--text-secondary);
+  padding: 14px 20px;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.keywords-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.98rem;
+}
+
+.keywords-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.badge-kw {
+  display: inline-block;
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--primary);
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.badge-cat {
+  display: inline-block;
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+/* --- 9. Footer --- */
+.app-footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 48px 0;
+  background: #05070b;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 20px;
+  list-style: none;
+}
+
+.footer-links a {
+  color: var(--text-secondary);
+}
+
+.footer-links a:hover {
+  color: var(--primary);
+}
+
+/* --- 10. Responsive Breakpoints --- */
+@media (max-width: 992px) {
+  .hero-title {
+    font-size: 2.6rem;
   }
-  .editor-pane {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .bento-card.span-2 {
+    grid-column: span 1;
+  }
+  .ide-workspace {
+    grid-template-columns: 1fr;
+  }
+  .editor-box {
     border-left: none;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-subtle);
+    min-height: 300px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 2.1rem;
+  }
+  .hero-subtitle {
+    font-size: 1.05rem;
+  }
+  .nav-links {
+    display: none;
+  }
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+  .quickstart-box {
+    font-size: 0.8rem;
   }
 }

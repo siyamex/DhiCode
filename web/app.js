@@ -1,17 +1,23 @@
-// web/app.js
+// web/app.js - DhiCode Live Web Playground Controller
 let pyodide = null;
 let isReady = false;
 
+// DOM Elements
 const editor = document.getElementById("code-editor");
 const terminal = document.getElementById("terminal-output");
 const statusIndicator = document.getElementById("runtime-status");
-const exampleSelect = document.getElementById("example-select");
 const btnRun = document.getElementById("btn-run");
 const btnClear = document.getElementById("btn-clear");
 const btnDir = document.getElementById("btn-dir");
+const btnCopyCmd = document.getElementById("btn-copy-cmd");
+const btnCopyCode = document.getElementById("btn-copy-code");
+const execTimeBadge = document.getElementById("exec-time");
+const exampleTabs = document.querySelectorAll("#example-tabs .ide-tab");
 
-// Set default example
-editor.value = EXAMPLES.hello;
+// Set initial example
+if (typeof EXAMPLES !== "undefined" && EXAMPLES.hello) {
+  editor.value = EXAMPLES.hello.code;
+}
 
 // Append line to web terminal
 function appendTerminal(text, type = "normal") {
@@ -23,32 +29,64 @@ function appendTerminal(text, type = "normal") {
 }
 
 // Clear terminal
-btnClear.addEventListener("click", () => {
-  terminal.innerHTML = "";
-});
+if (btnClear) {
+  btnClear.addEventListener("click", () => {
+    terminal.innerHTML = '<div class="terminal-dim">(ޓާމިނަލް ފޮހެލެވިއްޖެ)</div>';
+    if (execTimeBadge) execTimeBadge.textContent = "";
+  });
+}
 
-// Toggle Text Direction (RTL / LTR)
+// Direction toggle (RTL / LTR)
 let isRtl = true;
-btnDir.addEventListener("click", () => {
-  isRtl = !isRtl;
-  editor.dir = isRtl ? "rtl" : "ltr";
-  terminal.dir = isRtl ? "rtl" : "ltr";
-  btnDir.innerHTML = isRtl ? `<span>🔀</span> RTL` : `<span>🔀</span> LTR`;
+if (btnDir) {
+  btnDir.addEventListener("click", () => {
+    isRtl = !isRtl;
+    document.documentElement.dir = isRtl ? "rtl" : "ltr";
+    editor.dir = isRtl ? "rtl" : "ltr";
+    terminal.dir = isRtl ? "rtl" : "ltr";
+    btnDir.innerHTML = isRtl ? `<span id="dir-icon">🔀</span> RTL` : `<span id="dir-icon">🔀</span> LTR`;
+  });
+}
+
+// Tab Switching
+exampleTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    exampleTabs.forEach((t) => t.classList.remove("active"));
+    tab.classList.add("active");
+
+    const key = tab.getAttribute("data-example");
+    if (typeof EXAMPLES !== "undefined" && EXAMPLES[key]) {
+      editor.value = EXAMPLES[key].code;
+    }
+  });
 });
 
-// Example switcher
-exampleSelect.addEventListener("change", (e) => {
-  const key = e.target.value;
-  if (EXAMPLES[key]) {
-    editor.value = EXAMPLES[key];
-  }
-});
+// Copy quickstart command
+if (btnCopyCmd) {
+  btnCopyCmd.addEventListener("click", () => {
+    const cmd = document.getElementById("quick-cmd").textContent;
+    navigator.clipboard.writeText(cmd).then(() => {
+      btnCopyCmd.textContent = "✅";
+      setTimeout(() => (btnCopyCmd.textContent = "📋"), 2000);
+    });
+  });
+}
+
+// Copy editor code
+if (btnCopyCode) {
+  btnCopyCode.addEventListener("click", () => {
+    navigator.clipboard.writeText(editor.value).then(() => {
+      btnCopyCode.textContent = "ކޮޕީ ވެއްޖެ!";
+      setTimeout(() => (btnCopyCode.textContent = "ކޮޕީ"), 2000);
+    });
+  });
+}
 
 // Initialize Pyodide WebAssembly
 async function initPyodide() {
   try {
     statusIndicator.textContent = "Wasm ލޯޑުވަނީ...";
-    statusIndicator.className = "status-indicator loading";
+    statusIndicator.className = "status-badge loading";
 
     pyodide = await loadPyodide();
 
@@ -79,14 +117,15 @@ async function initPyodide() {
     }
 
     isReady = true;
-    statusIndicator.textContent = "ތައްޔާރު (Ready)";
-    statusIndicator.className = "status-indicator ready";
+    statusIndicator.textContent = "● ތައްޔާރު";
+    statusIndicator.className = "status-badge ready";
 
     terminal.innerHTML = "";
-    appendTerminal("✅ DhiCode Wasm ރަންޓައިމް ކާމިޔާބުކަމާއެކު ތައްޔާރުވެއްޖެ! ކޯޑު ހިންގުމަށް 'ހިންގާ (Run)' ފިއްތަވާ.", "success");
+    appendTerminal("✅ DhiCode WebAssembly ރަންޓައިމް ކާމިޔާބުކަމާއެކު ތައްޔާރުވެއްޖެ!", "success");
+    appendTerminal("ކޯޑު ހިންގުމަށް '▶ ހިންގާ (Run)' ފިއްތަވާ ނުވަތަ Ctrl + Enter ޖައްސަވާ.", "dim");
   } catch (err) {
-    statusIndicator.textContent = "މައްސަލައެއް!";
-    statusIndicator.className = "status-indicator error";
+    statusIndicator.textContent = "● މައްސަލައެއް";
+    statusIndicator.className = "status-badge error";
     appendTerminal(`Error initializing Pyodide: ${err}`, "error");
   }
 }
@@ -94,20 +133,21 @@ async function initPyodide() {
 // Run Code
 async function runDhiCode() {
   if (!isReady || !pyodide) {
-    appendTerminal("އަދި ރަންޓައިމް ތައްޔާރެއް ނުވޭ. މަޑުކޮށްލައްވާ...", "warning");
+    appendTerminal("އަދި ރަންޓައިމް ތައްޔާރެއް ނުވޭ. މަޑުކޮށްލައްވާ...", "error");
     return;
   }
 
   terminal.innerHTML = "";
-  const code = editor.value;
+  if (execTimeBadge) execTimeBadge.textContent = "ހިނގަނީ...";
 
+  const code = editor.value;
   btnRun.disabled = true;
   btnRun.textContent = "ހިނގަނީ...";
 
+  const t0 = performance.now();
+
   try {
-    // Mount custom stdout callback
     pyodide.globals.set("dhi_source", code);
-    pyodide.globals.set("output_log", []);
 
     await pyodide.runPythonAsync(`
 import sys
@@ -149,9 +189,15 @@ def run_web(source):
 logs = run_web(dhi_source)
 `);
 
+    const t1 = performance.now();
+    const duration = Math.round(t1 - t0);
+    if (execTimeBadge) {
+      execTimeBadge.textContent = `⏱️ ${duration}ms`;
+    }
+
     const logs = pyodide.globals.get("logs").toJs();
-    if (logs.length === 0) {
-      appendTerminal("(ނިމުނީ - އެއްވެސް ލިޔުމެއް ނުދައްކާ)", "normal");
+    if (!logs || logs.length === 0) {
+      appendTerminal("(ނިމުނީ - އެއްވެސް ލިޔުމެއް ނުދައްކާ)", "dim");
     } else {
       for (const [type, msg] of logs) {
         appendTerminal(msg, type);
@@ -159,15 +205,18 @@ logs = run_web(dhi_source)
     }
   } catch (err) {
     appendTerminal(`ރަންޓައިމް ކުށް: ${err}`, "error");
+    if (execTimeBadge) execTimeBadge.textContent = "ކުށެއް!";
   } finally {
     btnRun.disabled = false;
-    btnRun.textContent = "▶ ހިންގާ (Run)";
+    btnRun.textContent = "▶ ހިންގާ (Ctrl+Enter)";
   }
 }
 
-btnRun.addEventListener("click", runDhiCode);
+if (btnRun) {
+  btnRun.addEventListener("click", runDhiCode);
+}
 
-// Keyboard shortcut: Ctrl + Enter / Cmd + Enter
+// Global keyboard shortcut: Ctrl + Enter / Cmd + Enter
 document.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
     e.preventDefault();
