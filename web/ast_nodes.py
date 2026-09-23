@@ -1,6 +1,6 @@
 # ast_nodes.py
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union, Any
 from lexer import Token
 
 class Node(ABC):
@@ -107,15 +107,17 @@ class ReturnStatement(Statement):
         return f"{self.token_literal()} {val_str};"
 
 class PrintStatement(Statement):
-    def __init__(self, token: Token, value: Expression):
+    def __init__(self, token: Token, value: Optional[Expression] = None, values: Optional[List[Expression]] = None):
         self.token = token
         self.value = value
+        self.values = values if values is not None else ([value] if value is not None else [])
 
     def token_literal(self) -> str:
         return self.token.literal
 
     def __str__(self) -> str:
-        return f"{self.token_literal()} {str(self.value)};"
+        val_str = ", ".join(str(v) for v in self.values)
+        return f"{self.token_literal()} {val_str};"
 
 class ExpressionStatement(Statement):
     def __init__(self, token: Token, expression: Optional[Expression] = None):
@@ -170,8 +172,28 @@ class ForInStatement(Statement):
     def __str__(self) -> str:
         return f"ކޮންމެ {str(self.item)} ތެރޭގައި {str(self.iterable)}\n{str(self.body)}\nނިމުނީ"
 
+class Parameter(Node):
+    def __init__(self, token: Token, name: 'Identifier', default: Optional[Expression] = None, is_variadic: bool = False):
+        self.token = token
+        self.name = name
+        self.default = default
+        self.is_variadic = is_variadic
+
+    @property
+    def value(self) -> str:
+        return self.name.value
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        prefix = "..." if self.is_variadic else ""
+        if self.default:
+            return f"{prefix}{self.name} = {self.default}"
+        return f"{prefix}{self.name}"
+
 class FunctionStatement(Statement):
-    def __init__(self, token: Token, name: 'Identifier', parameters: List['Identifier'], body: BlockStatement):
+    def __init__(self, token: Token, name: 'Identifier', parameters: List[Any], body: BlockStatement):
         self.token = token
         self.name = name
         self.parameters = parameters
@@ -183,6 +205,52 @@ class FunctionStatement(Statement):
     def __str__(self) -> str:
         params = ", ".join(str(p) for p in self.parameters)
         return f"ވަޒީފާ {str(self.name)}({params})\n{str(self.body)}\nނިމުނީ"
+
+class ClassStatement(Statement):
+    def __init__(self, token: Token, name: 'Identifier', super_class: Optional['Identifier'] = None, methods: Optional[List[FunctionStatement]] = None):
+        self.token = token
+        self.name = name
+        self.super_class = super_class
+        self.methods: List[FunctionStatement] = methods if methods is not None else []
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        sup = f" extends {self.super_class}" if self.super_class else ""
+        methods_str = "\n".join(str(m) for m in self.methods)
+        return f"class {self.name}{sup}\n{methods_str}\nend"
+
+class DestructureLetStatement(Statement):
+    def __init__(self, token: Token, kind: str, names: List['Identifier'], value: Expression, is_const: bool = False):
+        self.token = token
+        self.kind = kind  # "list" or "dict"
+        self.names = names
+        self.value = value
+        self.is_const = is_const
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        delim = ("[", "]") if self.kind == "list" else ("{", "}")
+        names_str = ", ".join(str(n) for n in self.names)
+        kw = "const" if self.is_const else "let"
+        return f"{kw} {delim[0]}{names_str}{delim[1]} = {str(self.value)};"
+
+class DotAssignmentStatement(Statement):
+    def __init__(self, token: Token, target: Expression, property_name: 'Identifier', operator: str, value: Expression):
+        self.token = token
+        self.target = target
+        self.property_name = property_name
+        self.operator = operator
+        self.value = value
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f"{str(self.target)}.{str(self.property_name)} {self.operator} {str(self.value)};"
 
 class ImportStatement(Statement):
     def __init__(self, token: Token, path: str):
@@ -351,3 +419,50 @@ class CallExpression(Expression):
     def __str__(self) -> str:
         args = ", ".join(str(a) for a in self.arguments)
         return f"{str(self.function)}({args})"
+
+class ThisExpression(Expression):
+    def __init__(self, token: Token):
+        self.token = token
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return self.token.literal
+
+class DotExpression(Expression):
+    def __init__(self, token: Token, left: Expression, property_name: 'Identifier'):
+        self.token = token
+        self.left = left
+        self.property_name = property_name
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f"({str(self.left)}.{str(self.property_name)})"
+
+class ArrowFunctionLiteral(Expression):
+    def __init__(self, token: Token, parameters: List[Any], body: Union[BlockStatement, Expression]):
+        self.token = token
+        self.parameters = parameters
+        self.body = body
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        params = ", ".join(str(p) for p in self.parameters)
+        return f"({params}) => {str(self.body)}"
+
+class RangeExpression(Expression):
+    def __init__(self, token: Token, start: Expression, end: Expression):
+        self.token = token
+        self.start = start
+        self.end = end
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f"({str(self.start)}..{str(self.end)})"

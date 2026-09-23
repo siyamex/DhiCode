@@ -69,6 +69,16 @@ KEYWORDS = {
     "try": tt.TT_TRY,
     "catch": tt.TT_CATCH,
     "throw": tt.TT_THROW,
+
+    # OOP Keywords (Phase 3)
+    "ކްލާސް": tt.TT_CLASS,
+    "މި": tt.TT_THIS,
+    "ދަރިކޮޅު": tt.TT_EXTENDS,
+
+    "class": tt.TT_CLASS,
+    "this": tt.TT_THIS,
+    "self": tt.TT_THIS,
+    "extends": tt.TT_EXTENDS,
 }
 
 def is_thaana_char(char):
@@ -218,6 +228,10 @@ class Lexer:
                 self._read_char()
                 self._read_char()
                 return Token(tt.TT_EQ, "==", self.line, col)
+            elif self._peek_char() == '>':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_ARROW, "=>", self.line, col)
             self._read_char()
             return Token(tt.TT_ASSIGN, "=", self.line, col)
         elif self.ch == '!':
@@ -315,6 +329,17 @@ class Lexer:
         elif self.ch == '~':
             self._read_char()
             return Token(tt.TT_BIT_NOT, "~", self.line, col)
+        elif self.ch == '.':
+            if self._peek_char() == '.':
+                self._read_char()
+                if self._peek_char() == '.':
+                    self._read_char()
+                    self._read_char()
+                    return Token(tt.TT_ELLIPSIS, "...", self.line, col)
+                self._read_char()
+                return Token(tt.TT_RANGE, "..", self.line, col)
+            self._read_char()
+            return Token(tt.TT_DOT, ".", self.line, col)
 
         # Single-character tokens & Delimiters
         elif self.ch == '(':

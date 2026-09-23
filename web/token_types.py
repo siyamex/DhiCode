@@ -26,6 +26,12 @@ TT_LTE      = '<='
 TT_GTE      = '>='
 TT_NULL_COALESCE = '??'
 
+# Member Access, Range, Ellipsis & Arrow
+TT_DOT      = '.'
+TT_RANGE    = '..'
+TT_ELLIPSIS = '...'
+TT_ARROW    = '=>'
+
 # Compound Assignment Operators
 TT_PLUS_ASSIGN     = '+='
 TT_MINUS_ASSIGN    = '-='
@@ -75,3 +81,8 @@ TT_IMPORT   = 'IMPORT'    # ގެނޭ / import
 TT_TRY      = 'TRY'       # މަސައްކަތްކުރޭ / try
 TT_CATCH    = 'CATCH'     # ކުށެއް_ފެނިއްޖެނަމަ / catch
 TT_THROW    = 'THROW'     # އުކާލާ / throw
+
+# Object-Oriented Keywords (Phase 3)
+TT_CLASS    = 'CLASS'     # ކްލާސް / class
+TT_THIS     = 'THIS'      # މި / this / self
+TT_EXTENDS  = 'EXTENDS'   # ދަރިކޮޅު / extends

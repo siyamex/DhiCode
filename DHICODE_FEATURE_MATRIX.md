@@ -18,15 +18,15 @@
 | **Comments (Line & Block)** | ✅ | | | `//` single-line and `/* ... */` multi-line |
 | **Mutable Variables (`ކަނޑައަޅާ` / `let`)** | ✅ | | | Dynamic assignment, re-assignment, and compound assignment |
 | **Constants / Immutable (`ދާއިމީ` / `const`)** | ✅ | | | Immutable variable declarations with runtime protection |
-| **Multiple Assignment & Destructuring** | | | ❌ | `ކަނޑައަޅާ [a, b] = [1, 2]` |
+| **Multiple Assignment & Destructuring** | ✅ | | | `ކަނޑައަޅާ [a, b] = [1, 2]`, `let {name, age} = user` |
 | **Static Type Annotations** | | | ❌ | Optional typing: `އުމުރު: Integer = 25` |
 | **Type Inference Engine** | | 🟡 | | Dynamic type inference at runtime; target static inference |
 | **First-Class Functions (`ވަޒީފާ` / `fn`)** | ✅ | | | Lexical closures, higher-order functions, recursion |
-| **Default & Named Parameters** | | | ❌ | `ވަޒީފާ ހަދާ(ނަން, އުމުރު = 18)` |
-| **Variadic Arguments (`...args`)** | | | ❌ | Variable-length function argument lists |
-| **Anonymous Functions / Lambdas** | | 🟡 | | Target lightweight arrow syntax `(x) => x * 2` |
+| **Default & Named Parameters** | ✅ | | | `ވަޒީފާ ހަދާ(ނަން, އުމުރު = 18)`, `fn greet(name, title = "Mr.")` |
+| **Variadic Arguments (`...args`)** | ✅ | | | Variable-length function argument lists (`...args`, `...އާގްސް`) |
+| **Anonymous Functions / Lambdas** | ✅ | | | Lightweight arrow syntax `(x) => x * 2`, `(a, b) => a + b` |
 | **Pipeline Operator (`\|>`)** | | | ❌ | Functional pipeline `data \|> filter(...) \|> map(...)` |
-| **Object-Oriented Classes** | | | ❌ | `class`, `constructor`, `methods`, `inheritance` |
+| **Object-Oriented Classes** | ✅ | | | `class` / `ކްލާސް`, `constructor` / `ހަދާ_ވަޒީފާ`, `methods`, `inheritance` (`extends` / `ދަރިކޮޅު`), `this` / `މި` |
 | **Structs / Records** | | | ❌ | Lightweight typed data structures |
 | **Enums with Associated Values** | | | ❌ | Tagged unions / enums |
 | **Generics (`List<T>`)** | | | ❌ | Generic functions, structs, and interfaces |
@@ -48,7 +48,7 @@
 | **Compound Assignment (`+=`, `-=`, `*=`, `/=`, `%=`)** | ✅ | | | Inplace mutation on variables and collection indices |
 | **Null Coalescing (`??`)** | ✅ | | | Safe fallback for `ހުސް` / `null` with short-circuiting |
 | **Optional Chaining (`?.`)** | | | ❌ | Safe nested property traversal |
-| **Range Operator (`..`)** | | | ❌ | Range generation for loops: `1..10` |
+| **Range Operator (`..`)** | ✅ | | | Range generation for expressions and loops: `1..10` |
 
 ---
 

@@ -4,8 +4,8 @@ import os
 import re
 
 BLOCK_OPENERS = {
-    "ވަޒީފާ", "ފަންކް", "ނަމަ", "ހިނދު", "ކޮންމެ", "މަސައްކަތްކުރޭ",
-    "fn", "func", "function", "if", "while", "for", "try"
+    "ވަޒީފާ", "ފަންކް", "ނަމަ", "ހިނދު", "ކޮންމެ", "މަސައްކަތްކުރޭ", "ކްލާސް",
+    "fn", "func", "function", "if", "while", "for", "try", "class"
 }
 
 BLOCK_MIDDLES = {

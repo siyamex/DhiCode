@@ -1,0 +1,123 @@
+// examples/oop_and_modern_syntax_demo.dhi
+// DHicode Phase 3 Demonstration: Modern Syntax & Object-Oriented Programming (OOP)
+
+// ==========================================
+// 1. Object-Oriented Classes & Inheritance (ދިވެހި ކްލާސްތައް)
+// ==========================================
+print("=== 1. Classes, Methods & Inheritance ===");
+
+ކްލާސް އިންސާނާ
+    ވަޒީފާ ހަދާ_ވަޒީފާ(ނަން, އުމުރު = 18)
+        މި.ނަން = ނަން
+        މި.އުމުރު = އުމުރު
+    ނިމުނީ
+
+    ވަޒީފާ ތަޢާރަފް()
+        ފޮނުވާ "އަހަންނަކީ " + މި.ނަން + "، އުމުރަކީ " + މި.އުމުރު;
+    ނިމުނީ
+
+    ވަޒީފާ އަހަރު_އިތުރުކުރޭ()
+        މި.އުމުރު += 1
+        ފޮނުވާ މި.އުމުރު
+    ނިމުނީ
+ނިމުނީ
+
+ކްލާސް ޑޮކްޓަރު ދަރިކޮޅު އިންސާނާ
+    ވަޒީފާ ހަދާ_ވަޒީފާ(ނަން, އުމުރު, ހޮސްޕިޓަލް)
+        މި.ނަން = ނަން
+        މި.އުމުރު = އުމުރު
+        މި.ހޮސްޕިޓަލް = ހޮސްޕިޓަލް
+    ނިމުނީ
+
+    ވަޒީފާ ފަރުވާ_ދީ(ބަލި_މީހާ)
+        ފޮނުވާ "ޑރ. " + މި.ނަން + " ފަރުވާ ދެނީ " + ބަލި_މީހާ + " އަށް (" + މި.ހޮސްޕިޓަލް + ")";
+    ނިމުނީ
+ނިމުނީ
+
+ކަނޑައަޅާ ޑރ = ޑޮކްޓަރު("އަޙްމަދު", 35, "އައިޖީއެމްއެޗް");
+ދައްކާ ޑރ.ތަޢާރަފް();
+ދައްކާ ޑރ.ފަރުވާ_ދީ("ޢަލީ");
+ޑރ.އަހަރު_އިތުރުކުރޭ();
+ދައްކާ "އުފަންދުވަހަށް ފަހު އައު އުމުރު:", ޑރ.އުމުރު;
+
+print("");
+
+// ==========================================
+// 2. English OOP & Variadic Rest Parameters
+// ==========================================
+print("=== 2. English OOP & Variadic Parameters ===");
+
+class BankAccount {
+    fn constructor(owner, balance = 0) {
+        this.owner = owner;
+        this.balance = balance;
+    }
+
+    fn deposit(...amounts) {
+        for amt in amounts {
+            this.balance += amt;
+        }
+        return this.balance;
+    }
+
+    fn getSummary() => this.owner + " balance: " + this.balance + " MVR";
+}
+
+let account = BankAccount("Fathimath", 500);
+print(account.getSummary());
+account.deposit(150, 250, 100);
+print("After deposits:", account.getSummary());
+
+print("");
+
+// ==========================================
+// 3. Arrow Functions & Lambdas
+// ==========================================
+print("=== 3. Arrow Functions & Lambdas ===");
+
+let double = (x) => x * 2;
+let calculate = (base, tax = 0.06) => base + (base * tax);
+
+print("Double of 21:", double(21));
+print("Calculate price (100 + 6%):", calculate(100));
+print("Calculate price custom tax (100 + 12%):", calculate(100, 0.12));
+
+let square_block = (n) => {
+    let sq = n * n;
+    return "Square of " + n + " is " + sq;
+};
+print(square_block(9));
+
+print("");
+
+// ==========================================
+// 4. Range Operator (..)
+// ==========================================
+print("=== 4. Range Operator (..) ===");
+
+let numbers = 1..6;
+print("Generated Range 1..6:", numbers);
+
+let sum = 0;
+for n in 1..10 {
+    sum += n;
+}
+print("Sum of 1 through 10:", sum);
+
+print("");
+
+// ==========================================
+// 5. Destructuring Assignment (ޑީސްޓްރަކްޗަރިންގ)
+// ==========================================
+print("=== 5. Destructuring Assignment ===");
+
+let [primary_color, secondary_color] = ["Red", "Green"];
+print("Colors:", primary_color, "and", secondary_color);
+
+let point = { x: 42, y: 88 };
+let {x, y} = point;
+print("Point Coordinates: x =", x, ", y =", y);
+
+// Dot property assignment on dictionaries
+point.x += 8;
+print("Updated point.x via dot assignment:", point.x);
