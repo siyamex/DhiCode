@@ -206,6 +206,92 @@ Import built-in standard library modules using `ގެނޭ "<module>"`:
 ހިނދުކޮޅު(2)      // Sleep for 2 seconds
 ```
 
+### 4. `ނެޓްވޯކް` (Network, HTTP & JSON)
+```dhicode
+ގެނޭ "ނެޓްވޯކް"
+
+// JSON serialization & deserialization
+ކަނޑައަޅާ މީހާ = {"ނަން": "ޢަލީ", "އުމުރު": 28}
+ކަނޑައަޅާ ޖޭސަން_ލިޔުން = ޖޭސަން_ހަދާ(މީހާ)
+ކަނޑައަޅާ އަލުން = ޖޭސަން_ކިޔާ(ޖޭސަން_ލިޔުން)
+
+// HTTP GET
+ކަނޑައަޅާ ޖަވާބު = ނަގާ("https://api.github.com/users/siyamex")
+ދައްކާ "ސްޓޭޓަސް ކޯޑު: " + ޖަވާބު["ކޯޑު"]
+```
+
+### 5. `ނަކަތް` (Maldivian Nakaiy Calendar)
+```dhicode
+ގެނޭ "ނަކަތް"
+
+// މިއަދުގެ ނަކަތް
+ކަނޑައަޅާ މިއަދު = މިއަދުގެ_ނަކަތް()
+ދައްކާ "ނަކަތް: " + މިއަދު["ނަން"]
+ދައްކާ "މޫސުން: " + މިއަދު["މޫސުން"] // ހުޅަނގު ނުވަތަ އިރުވައި
+ދައްކާ "ސިފަ: " + މިއަދު["ސިފަ"]
+
+// ވަކި ތާރީޚެއްގެ ނަކަތް ހޯދުން (މަސް, ދުވަސް)
+ކަނޑައަޅާ ކެތި = ނަކަތް_ހޯދާ(5, 10)
+```
+
+### 6. `ނަމާދު` (Maldivian Prayer Times)
+```dhicode
+ގެނޭ "ނަމާދު"
+
+ކަނޑައަޅާ ވަގުތު = މިއަދުގެ_ވަގުތު("މާލެ")
+ދައްކާ "ފަތިސް: " + ވަގުތު["ފަތިސް"]
+ދައްކާ "މެންދުރު: " + ވަގުތު["މެންދުރު"]
+ދައްކާ "ޢަޞުރު: " + ވަގުތު["ޢަޞުރު"]
+ދައްކާ "މަޣްރިބް: " + ވަގުތު["މަޣްރިބް"]
+ދައްކާ "ޢިޝާ: " + ވަގުތު["ޢިޝާ"]
+
+// ދެން އެންމެ އަވަހަށް އޮތް ނަމާދު
+ކަނޑައަޅާ ދެން = ދެން_އޮތް_ނަމާދު("މާލެ")
+ދައްކާ "ދެން އޮތީ: " + ދެން["ނަމާދު"] + " (" + ދެން["ބާކީ_މިނިޓް"] + " މިނިޓް)"
+```
+
+### 7. `ތާނަ_ހިސާބު` (Number-to-Words & Collation)
+```dhicode
+ގެނޭ "ތާނަ_ހިސާބު"
+
+// އަދަދު ދިވެހި ބަހަށް ބަދަލުކުރުން
+ދައްކާ އަދަދު_ބަހަށް(125)   // "ސަތޭކަ ފަންސަވީސް"
+ދައްކާ އަދަދު_ބަހަށް(2026)  // "ދެހާސް ސައްބީސް"
+
+// ތާނަ އަލިފުބާގެ ތަރުތީބުން އެތުރުން (ހ ށ ނ ރ ބ...)
+ކަނޑައަޅާ ބަސްތައް = ["ރަށް", "ހަނދު", "ނަން", "ށީ"]
+ދައްކާ ތާނަ_ތަރުތީބު(ބަސްތައް) // ["ހަނދު", "ށީ", "ނަން", "ރަށް"]
+```
+
+---
+
+## 🛠️ CLI Tools & Packager
+
+### 1. Build Standalone Executable Binary
+Bundle your `.dhi` program and the entire DhiCode runtime into a self-contained executable file:
+```bash
+python dhicode.py build main.dhi -o dist/myapp
+```
+This generates `dist/myapp.pyz` (cross-platform standalone zipapp) and `dist/myapp.bat` (Windows launcher), executable directly with zero dependencies!
+
+### 2. Code Formatter (`dhicode fmt`)
+Format and standardize your Thaana code with canonical 4-space block indentation and clean operator spacing:
+```bash
+python dhicode.py fmt main.dhi --write
+```
+
+### 3. Language Server Protocol (`dhicode lsp`)
+Launch the built-in JSON-RPC 2.0 Language Server providing diagnostics, hover documentation, and auto-completion for VS Code and other editors:
+```bash
+python dhicode.py lsp
+```
+
+---
+
+## 🎓 Interactive Dhivehi Coding Academy
+Learn DhiCode right in your browser with our step-by-step interactive course featuring live validation and progressive challenges:
+👉 **[https://siyamex.github.io/DhiCode/tutorial.html](https://siyamex.github.io/DhiCode/tutorial.html)**
+
 ---
 
 ## 📚 Keywords & Grammar
@@ -250,27 +336,32 @@ Restart VS Code, and `.dhi` files will immediately have syntax coloring and Dhiv
 
 ```
 DhiCode/
-├── dhicode.py              # CLI Runner, Diagnostics & REPL
+├── dhicode.py              # CLI Runner, Builder, Formatter & REPL
 ├── lexer.py                # Python UTF-8 Thaana Lexer
 ├── parser.py               # Pratt Precedence Parser
 ├── ast_nodes.py            # AST Node Definitions
 ├── evaluator.py            # Tree-walk Evaluator & Runtime
-├── stdlib.py               # Standard Library (Math, File, Time, System)
+├── formatter.py            # Canonical Thaana Code Formatter
+├── lsp_server.py           # JSON-RPC 2.0 Language Server Protocol Server
+├── stdlib.py               # Standard Library (Math, File, Time, Network, Nakaiy, Prayer, Thaana)
 ├── token_types.py          # Unified Token Definitions
 │
-├── web/                    # Live WebAssembly Playground
-│   ├── index.html
-│   ├── style.css
-│   ├── app.js
-│   └── examples.js
+├── web/                    # Modern Light-Theme Web Portal & Interactive Academy
+│   ├── index.html          # Main Portal & Web Playground
+│   ├── tutorial.html       # Interactive Dhivehi Coding Academy
+│   ├── style.css           # Modern Developer Design System
+│   ├── app.js              # Real-Time Syntax Highlighter & Wasm Runner
+│   ├── tutorial.js         # Curriculum & Interactive Auto-Grader
+│   └── examples.js         # Interactive Code Examples
 │
 ├── .github/workflows/
 │   └── deploy-pages.yml    # Automated GitHub Pages Deployment
 │
-├── vscode-dhicode/         # Visual Studio Code Extension
+├── vscode-dhicode/         # Visual Studio Code Extension (LSP, Hover, Snippets)
 │
 ├── tests/
-│   └── test_dhi.py         # Automated unit test suite (13 tests)
+│   ├── test_dhi.py         # Core language unit test suite
+│   └── test_stdlib_extended.py # Extended stdlib test suite (18 tests total)
 ├── examples/
 │   └── advanced.dhi        # Advanced showcase script
 ├── main.dhi                # Sample script

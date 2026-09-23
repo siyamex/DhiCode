@@ -152,6 +152,45 @@ class Environment:
         self.store[name] = val
         return val
 
+def python_to_dhi(val: Any) -> DhicodeObject:
+    if val is None:
+        return NULL_OBJ
+    if isinstance(val, bool):
+        return TRUE_OBJ if val else FALSE_OBJ
+    if isinstance(val, (int, float)):
+        return DhicodeNumber(val)
+    if isinstance(val, str):
+        return DhicodeString(val)
+    if isinstance(val, list):
+        return DhicodeList([python_to_dhi(x) for x in val])
+    if isinstance(val, dict):
+        pairs = {}
+        for k, v in val.items():
+            pairs[str(k)] = python_to_dhi(v)
+        return DhicodeDict(pairs)
+    if isinstance(val, DhicodeObject):
+        return val
+    return DhicodeString(str(val))
+
+def dhi_to_python(obj: DhicodeObject) -> Any:
+    if obj is None or isinstance(obj, DhicodeNull):
+        return None
+    if isinstance(obj, DhicodeBoolean):
+        return obj.value
+    if isinstance(obj, DhicodeNumber):
+        return int(obj.value) if obj.value.is_integer() else obj.value
+    if isinstance(obj, DhicodeString):
+        return obj.value
+    if isinstance(obj, DhicodeList):
+        return [dhi_to_python(x) for x in obj.elements]
+    if isinstance(obj, DhicodeDict):
+        res = {}
+        for k, v in obj.pairs.items():
+            k_key = k if isinstance(k, str) else (k.value if isinstance(k, DhicodeString) else str(k))
+            res[k_key] = dhi_to_python(v)
+        return res
+    return obj.inspect()
+
 # --- Evaluator ---
 
 class Evaluator:
@@ -167,8 +206,11 @@ class Evaluator:
             'boolean': lambda v: TRUE_OBJ if v else FALSE_OBJ,
             'null': lambda: NULL_OBJ,
             'list': lambda elems: DhicodeList(elems),
+            'dict': lambda pairs: DhicodeDict(pairs),
             'error': lambda msg: DhicodeError(msg),
             'builtin': lambda fn: DhicodeBuiltin(fn),
+            'py_to_dhi': python_to_dhi,
+            'dhi_to_py': dhi_to_python,
         }
         self.stdlib = get_stdlib_modules(self.obj_factory)
 

@@ -1,19 +1,24 @@
 {
   "name": "dhicode",
   "displayName": "DhiCode (ދިވެހި ކޯޑު)",
-  "description": "Language support and syntax highlighting for DhiCode - Dhivehi programming language",
-  "version": "0.1.0",
-  "publisher": "dhicode",
+  "description": "Language support, syntax highlighting, LSP hover docs, formatting, and runner for DhiCode - Dhivehi programming language",
+  "version": "0.3.0",
+  "publisher": "siyamex",
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:dhicode"
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/dhicode/dhicode"
+    "url": "https://github.com/siyamex/DhiCode"
   },
   "engines": {
     "vscode": "^1.60.0"
   },
   "categories": [
     "Programming Languages",
-    "Snippets"
+    "Snippets",
+    "Formatters"
   ],
   "keywords": [
     "dhicode",
@@ -48,6 +53,18 @@
       {
         "language": "dhicode",
         "path": "./snippets/dhicode.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "dhicode.run",
+        "title": "DhiCode: Run Script (ހިންގާ)",
+        "category": "DhiCode"
+      },
+      {
+        "command": "dhicode.build",
+        "title": "DhiCode: Build Standalone Binary (ބިލްޑް)",
+        "category": "DhiCode"
       }
     ]
   }

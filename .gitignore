@@ -8,6 +8,8 @@ __pycache__/
 build/
 bin/
 obj/
+dist/
+*.pyz
 *.o
 *.obj
 *.exe

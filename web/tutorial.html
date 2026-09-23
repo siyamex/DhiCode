@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="dv" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary SEO -->
+  <title>ދިވެހި ކޯޑު އެކަޑަމީ (DhiCode Academy) | އިންޓަރެކްޓިވް ކޯސް</title>
+  <meta name="title" content="ދިވެހި ކޯޑު އެކަޑަމީ (DhiCode Academy) | އިންޓަރެކްޓިވް ކޯސް">
+  <meta name="description" content="ދިވެހި ބަހުން ޕްރޮގްރާމްކުރަން ދަސްކޮށްދޭ އިންޓަރެކްޓިވް އެކަޑަމީ. ބްރައުޒަރ ތެރޭގައި ވަގުތުން ކޯޑު ލިޔެ ޗެލެންޖްތައް ފުރިހަމަކުރައްވާ!">
+  <meta name="keywords" content="DhiCode Academy, learn Dhivehi programming, Thaana code tutorial, ދިވެހި ކޯޑު އެކަޑަމީ, ތާނަ ކޯސް">
+  <link rel="canonical" href="https://siyamex.github.io/DhiCode/tutorial.html">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+
+  <!-- Fonts & Styles -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Noto+Sans+Thaana:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+
+  <style>
+    /* Academy Specific Styles */
+    .academy-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      padding: 30px 0 80px;
+    }
+
+    .academy-sidebar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+      height: fit-content;
+      position: sticky;
+      top: 80px;
+    }
+
+    .academy-progress-box {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-surface-elevated);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    #progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0284c7, #10b981);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .academy-lesson-item {
+      width: 100%;
+      text-align: right;
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-family: var(--font-thaana);
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+    }
+
+    .academy-lesson-item:hover {
+      background: var(--bg-surface-elevated);
+      color: var(--text-primary);
+    }
+
+    .academy-lesson-item.active {
+      background: var(--primary-subtle);
+      border-color: var(--primary);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .academy-lesson-item.completed .lesson-badge {
+      color: #10b981;
+    }
+
+    .lesson-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lesson-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--bg-surface-elevated);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .lesson-titles strong {
+      display: block;
+      font-size: 0.95rem;
+    }
+
+    .lesson-titles small {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* Lesson Workspace */
+    .academy-workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .lesson-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .lesson-header {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .lesson-header h1 {
+      font-size: 1.8rem;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .lesson-header p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+    }
+
+    .lesson-theory-content {
+      line-height: 1.9;
+      font-size: 1.05rem;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+
+    .lesson-theory-content h3 {
+      margin: 16px 0 8px;
+      color: var(--primary);
+      font-size: 1.25rem;
+    }
+
+    .lesson-theory-content pre {
+      background: var(--bg-surface-elevated);
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      font-family: var(--font-thaana), var(--font-mono);
+      font-size: 1.05rem;
+      margin: 12px 0;
+      white-space: pre-wrap;
+    }
+
+    .challenge-box {
+      background: rgba(2, 132, 199, 0.06);
+      border: 1px solid rgba(2, 132, 199, 0.2);
+      border-radius: var(--radius-md);
+      padding: 18px 22px;
+      font-size: 1.05rem;
+      margin-top: 16px;
+    }
+
+    .academy-ide {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-window);
+    }
+
+    .academy-nav-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .academy-layout {
+        grid-template-columns: 1fr;
+      }
+      .academy-sidebar {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Glow Backgrounds -->
+  <div class="glow-orb-1"></div>
+  <div class="glow-orb-2"></div>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-brand">
+        <span class="flag">🎓</span>
+        <span class="en-name">DhiCode Academy</span>
+        <span class="dv-name">ދިވެހި ކޯޑު އެކަޑަމީ</span>
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="index.html#playground">ޕްލޭގްރައުންޑް</a></li>
+        <li><a href="index.html#features">ޚާއްޞަ ސިފަތައް</a></li>
+        <li><a href="index.html#keywords">ކީވޯޑުތައް</a></li>
+        <li><a href="https://github.com/siyamex/DhiCode#readme" target="_blank">ލިޔުންތައް (Docs)</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button id="btn-theme" class="btn btn-secondary btn-icon" title="ތީމް ބަދަލުކުރޭ (Light / Dark)">
+          <span id="theme-icon">🌙</span>
+        </button>
+        <button id="btn-dir" class="btn btn-secondary btn-icon" title="އަކުރުގެ މިސްރާބު ބަދަލުކުރޭ">
+          <span id="dir-icon">🔀</span> RTL
+        </button>
+        <a href="index.html" class="btn btn-secondary">
+          🏠 މައި ސަފްޙާ
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Academy Main Layout -->
+  <div class="container academy-layout">
+    <!-- Sidebar: Course Syllabus & Progress -->
+    <aside class="academy-sidebar">
+      <div class="academy-progress-box">
+        <strong>ކޯހުގެ ކުރިއެރުން</strong>
+        <div class="progress-bar-bg">
+          <div id="progress-bar-fill"></div>
+        </div>
+        <small id="progress-text" style="color: var(--text-muted); display: block; margin-top: 6px;">0 / 8 ފުރިހަމަވެއްޖެ (0%)</small>
+      </div>
+
+      <div id="lesson-list">
+        <!-- Injected via JavaScript -->
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="academy-workspace">
+      <!-- Lesson Description Card -->
+      <section class="lesson-card">
+        <header class="lesson-header">
+          <h1 id="lesson-title">1. މަރުޙަބާ ދިވެހި ކޯޑު</h1>
+          <p id="lesson-subtitle">ފުރަތަމަ ޕްރޮގްރާމާއި ލިޔުން ދެއްކުން</p>
+        </header>
+
+        <div class="lesson-theory-content" id="lesson-theory">
+          <!-- Theory content injected via JS -->
+        </div>
+
+        <div class="challenge-box" id="lesson-task">
+          <!-- Challenge task injected via JS -->
+        </div>
+      </section>
+
+      <!-- Interactive Web IDE -->
+      <section class="academy-ide">
+        <div class="ide-header">
+          <div class="editor-bar-actions">
+            <span class="editor-syntax-badge">🎨 ކުލަ ކޯޑިންގ</span>
+            <span id="runtime-status" class="status-badge loading">Wasm ލޯޑުވަނީ...</span>
+          </div>
+
+          <div class="ide-actions">
+            <button id="btn-reset" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.85rem;">
+              🔄 އަލުން ފަށާ
+            </button>
+            <button id="btn-run" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.88rem;">
+              ▶ ހިންގާ
+            </button>
+            <button id="btn-validate" class="btn btn-primary" style="padding: 6px 18px; font-size: 0.88rem;">
+              ✨ ޗެކްކުރޭ (Validate)
+            </button>
+          </div>
+        </div>
+
+        <div class="ide-workspace">
+          <!-- Editor with Dual Layer Highlighting -->
+          <div class="editor-box">
+            <div class="editor-bar">
+              <span>lesson.dhi</span>
+              <span id="exec-time" style="color: var(--accent-emerald);"></span>
+            </div>
+            <div class="editor-container">
+              <pre id="code-highlight" aria-hidden="true"><code id="code-highlight-content"></code></pre>
+              <textarea id="code-editor" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+            </div>
+          </div>
+
+          <!-- Terminal -->
+          <div class="terminal-box">
+            <div class="terminal-bar">
+              <span>ޓާމިނަލް ނަތީޖާ (Output)</span>
+            </div>
+            <div class="terminal-body" id="terminal-output">
+              <div class="terminal-dim">
+                ކޯޑު ހިންގުމަށް "▶ ހިންގާ" ފިއްތަވާ، ނުވަތަ ޓާސްކް ޗެކްކުރުމަށް "✨ ޗެކްކުރޭ" ފިއްތަވާ.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Next / Prev Lesson Navigation -->
+      <div class="academy-nav-controls">
+        <button id="btn-prev-lesson" class="btn btn-secondary">
+          ◀ ކުރީގެ ފިލާވަޅު
+        </button>
+        <button id="btn-next-lesson" class="btn btn-primary">
+          ދެން އޮތް ފިލާވަޅު ▶
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+  <script src="tutorial.js"></script>
+</body>
+</html>
