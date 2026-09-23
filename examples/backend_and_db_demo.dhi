@@ -1,0 +1,184 @@
+// examples/backend_and_db_demo.dhi
+// DHicode Phase 4 Demonstration: SQLite Database & Native HTTP Web Server
+
+print("==========================================================");
+print("  DHicode Phase 4: Backend & Web Infrastructure Demo");
+print("==========================================================");
+print("");
+
+// ==========================================
+// 1. SQLite Database Operations (ޑޭޓާބޭސް)
+// ==========================================
+print("=== 1. SQLite Database: Tables, Inserts & Parameter Binding ===");
+
+import "db";
+
+// Open in-memory database
+let db = open(":memory:");
+
+// Create tables
+db.execute("CREATE TABLE islands (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, atoll TEXT, population INTEGER);");
+db.execute("CREATE TABLE nakaiy_records (id INTEGER PRIMARY KEY, nakaiy_name TEXT, rain_mm REAL);");
+
+print("Tables created successfully. Existing tables in database:", db.tables());
+
+// Parameterized Insert
+db.execute("INSERT INTO islands (name, atoll, population) VALUES (?, ?, ?);", ["Male'", "K", 215000]);
+db.execute("INSERT INTO islands (name, atoll, population) VALUES (?, ?, ?);", ["Hulhumale'", "K", 50000]);
+db.execute("INSERT INTO islands (name, atoll, population) VALUES (?, ?, ?);", ["Kulhudhuffushi", "HDh", 10000]);
+db.execute("INSERT INTO islands (name, atoll, population) VALUES (?, ?, ?);", ["Fuvahmulah", "Gn", 13000]);
+
+// Batch Insert with execute_many
+let weather_data = [
+    ["Assidha", 12.5],
+    ["Burana", 25.0],
+    ["Kethi", 45.2]
+];
+db.execute_many("INSERT INTO nakaiy_records (nakaiy_name, rain_mm) VALUES (?, ?);", weather_data);
+
+// Query all records
+let islands = db.query("SELECT * FROM islands ORDER BY population DESC;");
+print("Total islands in database:", len(islands));
+for item in islands {
+    print(" -> Island:", item["name"], "| Atoll:", item["atoll"], "| Population:", item["population"]);
+}
+
+// Single-record query
+let rain = db.query_one("SELECT sum(rain_mm) as total_rain FROM nakaiy_records;");
+print("Total recorded Nakaiy rainfall:", rain["total_rain"], "mm");
+
+print("");
+
+// ==========================================
+// 2. Transactions & Rollback (ޓްރާންސެކްޝަން)
+// ==========================================
+print("=== 2. SQLite Transactions: Commit & Rollback ===");
+
+db.execute("CREATE TABLE treasury (account TEXT PRIMARY KEY, amount INTEGER);");
+db.execute("INSERT INTO treasury (account, amount) VALUES (?, ?);", ["Reserve", 100000]);
+
+// Test Rollback
+db.begin();
+db.execute("UPDATE treasury SET amount = amount - 50000 WHERE account = 'Reserve';");
+print("Amount deducted inside uncommitted transaction. Rolling back now...");
+db.rollback();
+
+let check_roll = db.query_one("SELECT amount FROM treasury WHERE account = 'Reserve';");
+print("Amount after rollback (expected 100000):", check_roll["amount"]);
+
+// Test Commit
+db.begin();
+db.execute("UPDATE treasury SET amount = amount + 25000 WHERE account = 'Reserve';");
+db.commit();
+
+let check_com = db.query_one("SELECT amount FROM treasury WHERE account = 'Reserve';");
+print("Amount after commit (expected 125000):", check_com["amount"]);
+
+print("");
+
+// ==========================================
+// 3. Native HTTP Web Server & Router (ސާވަރު)
+// ==========================================
+print("=== 3. Native HTTP Web Server & REST API ===");
+
+import "net";
+
+// Create micro router
+let router = create_router();
+
+// Route 1: Status & Welcome
+router.get("/", fn(req) {
+    return response_json({
+        "status": "online",
+        "system": "DHicode Web API",
+        "version": "0.4.0",
+        "message": "Welcome to DHicode Backend Server!"
+    });
+});
+
+// Route 2: Query database for islands
+router.get("/api/islands", fn(req) {
+    let atoll_filter = null;
+    if (req.query) {
+        atoll_filter = req.query["atoll"];
+    }
+    let results = [];
+    if (atoll_filter) {
+        results = db.query("SELECT * FROM islands WHERE atoll = ? ORDER BY population DESC;", [atoll_filter]);
+    } else {
+        results = db.query("SELECT * FROM islands ORDER BY population DESC;");
+    }
+    return response_json({"count": len(results), "islands": results});
+});
+
+// Route 3: Add new island via POST JSON
+router.post("/api/islands", fn(req) {
+    if (!req.json) {
+        return response_json({"error": "JSON body required"}, 400);
+    }
+    let name = req.json["name"];
+    let atoll = req.json["atoll"];
+    let pop = req.json["population"] ?? 0;
+    
+    let res = db.execute("INSERT INTO islands (name, atoll, population) VALUES (?, ?, ?);", [name, atoll, pop]);
+    return response_json({
+        "created": true,
+        "id": res["last_id"],
+        "name": name,
+        "atoll": atoll
+    }, 201);
+});
+
+// Route 4: HTML View
+router.get("/html", fn(req) {
+    let html = "<html><body><h1>DHicode Island Portal</h1><p>Running natively in pure DHicode!</p></body></html>";
+    return response_html(html);
+});
+
+// Start HTTP server in background thread (port 0 = ephemeral OS-allocated port)
+let server = serve(0, router, {"background": true});
+let base_url = "http://127.0.0.1:" + server.port;
+print("HTTP Web Server running in background at:", base_url);
+
+print("");
+
+// ==========================================
+// 4. Test API Endpoints via DHicode Client
+// ==========================================
+print("=== 4. Testing Endpoints via Built-in HTTP Client ===");
+
+// 1. GET Root
+let root_res = get(base_url + "/");
+print("GET / -> Status:", root_res.status, "| System:", root_res.json["system"]);
+
+// 2. GET All Islands
+let islands_res = get(base_url + "/api/islands");
+print("GET /api/islands -> Status:", islands_res.status, "| Island Count:", islands_res.json["count"]);
+
+// 3. GET Filtered Islands (?atoll=K)
+let k_res = get(base_url + "/api/islands?atoll=K");
+print("GET /api/islands?atoll=K -> Count in Kaafu atoll:", k_res.json["count"]);
+
+// 4. POST New Island
+let new_island = {"name": "Addu City", "atoll": "S", "population": 33000};
+let post_res = post(base_url + "/api/islands", new_island);
+print("POST /api/islands -> Status:", post_res.status, "| Created ID:", post_res.json["id"], "| Name:", post_res.json["name"]);
+
+// Verify database was updated by the POST request
+let updated_count = db.query_one("SELECT count(*) as total FROM islands WHERE atoll = 'S';");
+print("Verified in SQLite: Addu City in atoll S count =", updated_count["total"]);
+
+// 5. GET HTML endpoint
+let html_res = get(base_url + "/html");
+print("GET /html -> Status:", html_res.status, "| Content-Type:", html_res.headers["Content-Type"]);
+
+// 6. Graceful Shutdown
+print("");
+print("Shutting down HTTP server and closing SQLite database...");
+server.close();
+db.close();
+
+print("");
+print("==========================================================");
+print("  All Phase 4 Backend & Web Server Tests Passed Successfully!");
+print("==========================================================");

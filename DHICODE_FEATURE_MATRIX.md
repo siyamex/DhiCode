@@ -80,14 +80,14 @@
 | **Time & Date (`ވަގުތު` / `time`)** | ✅ | | | Timestamp, sleep, formatted date strings, date parsing |
 | **System Info & Env (`ނިޒާމު` / `os`)** | ✅ | | | CLI arguments, exit, getenv, platform, cwd |
 | **Network & HTTP Client (`ނެޓްވޯކް` / `net`)** | ✅ | | | HTTP GET, POST, PUT, DELETE, JSON parse/stringify, URL codec |
-| **HTTP Web Server** | | | ❌ | Native micro-framework for web APIs |
+| **HTTP Web Server (`ނެޓްވޯކް.ސާވަރު` / `http.serve`)** | ✅ | | | Native micro-framework for REST APIs, request routing, JSON & HTML responses |
 | **WebSocket Client & Server** | | | ❌ | Real-time bidirectional socket communication |
 | **Nakaiy Calendar (`ނަކަތް` / `nakaiy`)** | ✅ | | | 27 Nakaiy database, daily lookup, climate traits, monsoon determination, day counter |
 | **Prayer Times (`ނަމާދު` / `prayer`)** | ✅ | | | Solar calculation for all Maldivian atolls, next prayer, Hijri calendar converter |
 | **Thaana Words & Collation (`ތާނަ` / `thaana`)** | ✅ | | | Number-to-words, Thaana collation, fili stripping, currency MVR, Latin transliteration |
 | **Regular Expressions (`ރެގެކްސް` / `regex`)** | ✅ | | | Unicode-aware pattern matching, searching, replacement, and splitting |
 | **Cryptography (`ކްރިޕްޓޯ` / `crypto`)** | ✅ | | | SHA-256, SHA-512, MD5, HMAC-SHA256, Base64 encode/decode, secure random token |
-| **Database Abstraction (`ޑޭޓާބޭސް`)** | | | ❌ | SQLite, PostgreSQL, key-value stores |
+| **Database Abstraction (`ޑޭޓާބޭސް` / `db`)** | ✅ | | | Embedded SQLite database, parameterized queries, transactions, commit & rollback |
 | **AI & Machine Learning (`އޭއައި`)** | | | ❌ | Tensors, GGUF/ONNX inference, embeddings, agents |
 
 ---

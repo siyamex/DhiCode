@@ -14,6 +14,10 @@ import base64
 import secrets
 import re
 import platform
+import sqlite3
+import http.server
+import socketserver
+import threading
 from datetime import datetime, date
 from typing import Dict, Any, List
 
@@ -21,11 +25,12 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
     """
     Returns extended standard library modules for DhiCode.
     obj_factory provides:
-      - num, string, boolean, null, list, dict, error, builtin, py_to_dhi, dhi_to_py
+      - num, string, boolean, null, list, dict, error, builtin, py_to_dhi, dhi_to_py, call_fn
     """
 
     py_to_dhi = obj_factory.get('py_to_dhi', lambda v: obj_factory['string'](str(v)))
     dhi_to_py = obj_factory.get('dhi_to_py', lambda o: o.inspect())
+    call_fn = obj_factory.get('call_fn', lambda fn, args: obj_factory['error']("Function invocation bridge not available"))
 
     # =========================================================================
     # 1. ހިސާބު (Math Module - "math")
@@ -452,6 +457,319 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         val = args[0].inspect()
         return obj_factory['string'](urllib.parse.unquote(val))
 
+    def _create_dhi_http_handler(handler_fn, silent=True):
+        class DhiHTTPHandler(http.server.BaseHTTPRequestHandler):
+            def log_message(self, format, *args):
+                if not silent:
+                    sys.stderr.write("%s - - [%s] %s\n" % (self.address_string(), self.log_date_time_string(), format % args))
+
+            def _handle_request(self, method: str):
+                parsed_url = urllib.parse.urlparse(self.path)
+                req_path = parsed_url.path
+                query_dict = {}
+                if parsed_url.query:
+                    qs_parts = urllib.parse.parse_qs(parsed_url.query, keep_blank_values=True)
+                    for k, v in qs_parts.items():
+                        query_dict[k] = v[0] if len(v) == 1 else v
+
+                headers_dict = dict(self.headers)
+                content_length = int(self.headers.get('Content-Length', 0))
+                body_bytes = self.rfile.read(content_length) if content_length > 0 else b""
+                body_str = body_bytes.decode('utf-8', errors='replace')
+
+                parsed_json = None
+                if body_str:
+                    try:
+                        parsed_json = json.loads(body_str)
+                    except Exception:
+                        parsed_json = None
+
+                req_py = {
+                    "method": method, "ކަން": method,
+                    "path": req_path, "މަގު": req_path,
+                    "query": query_dict, "ކިއަރީ": query_dict,
+                    "query_string": parsed_url.query, "ކިއަރީ_ލިޔުން": parsed_url.query,
+                    "headers": headers_dict, "ހެޑަރ": headers_dict,
+                    "body": body_str, "ހަށިގަނޑު": body_str, "ލިޔުން": body_str,
+                    "json": parsed_json, "ޖޭސަން": parsed_json,
+                }
+                dhi_req = py_to_dhi(req_py)
+
+                target_fn = handler_fn
+                if hasattr(handler_fn, 'pairs'):
+                    target_fn = handler_fn.pairs.get("handle") or handler_fn.pairs.get("ހިންގާ") or handler_fn
+
+                try:
+                    res_obj = call_fn(target_fn, [dhi_req])
+                except Exception as e:
+                    res_obj = obj_factory['error'](f"ހޭންޑްލަރ ހިންގުމުގައި މައްސަލައެއް: {e}")
+
+                self._send_dhi_response(res_obj)
+
+            def _send_dhi_response(self, res_obj):
+                status_code = 200
+                res_headers = {}
+                res_body = b""
+
+                if hasattr(res_obj, 'type_str') and res_obj.type_str() == "ކުށް":
+                    status_code = 500
+                    res_headers["Content-Type"] = "application/json; charset=utf-8"
+                    err_msg = res_obj.message if hasattr(res_obj, 'message') else str(res_obj)
+                    res_body = json.dumps({"error": err_msg}, ensure_ascii=False).encode('utf-8')
+
+                elif hasattr(res_obj, 'pairs'):
+                    pairs = res_obj.pairs
+                    st_val = pairs.get("status") or pairs.get("ކޯޑު")
+                    if st_val is not None and hasattr(st_val, 'value'):
+                        status_code = int(st_val.value)
+
+                    h_val = pairs.get("headers") or pairs.get("ހެޑަރ")
+                    if h_val is not None and hasattr(h_val, 'pairs'):
+                        for hk, hv in h_val.pairs.items():
+                            res_headers[str(hk)] = hv.inspect() if hasattr(hv, 'inspect') else str(hv)
+
+                    if "json" in pairs or "ޖޭސަން" in pairs:
+                        j_val = pairs.get("json") or pairs.get("ޖޭސަން")
+                        py_j = dhi_to_py(j_val)
+                        res_body = json.dumps(py_j, ensure_ascii=False).encode('utf-8')
+                        if "Content-Type" not in res_headers:
+                            res_headers["Content-Type"] = "application/json; charset=utf-8"
+                    elif "body" in pairs or "ހަށިގަނޑު" in pairs or "ލިޔުން" in pairs:
+                        b_val = pairs.get("body") or pairs.get("ހަށިގަނޑު") or pairs.get("ލިޔުން")
+                        b_text = b_val.inspect() if hasattr(b_val, 'inspect') else str(b_val)
+                        res_body = b_text.encode('utf-8')
+                    else:
+                        if status_code != 204:
+                            py_d = dhi_to_py(res_obj)
+                            res_body = json.dumps(py_d, ensure_ascii=False).encode('utf-8')
+                            if "Content-Type" not in res_headers:
+                                res_headers["Content-Type"] = "application/json; charset=utf-8"
+
+                elif hasattr(res_obj, 'type_str') and res_obj.type_str() == "ލިޔުން":
+                    text = res_obj.value
+                    res_body = text.encode('utf-8')
+                    stripped = text.strip()
+                    if stripped.startswith("<html") or stripped.startswith("<!DOCTYPE") or stripped.startswith("<"):
+                        res_headers["Content-Type"] = "text/html; charset=utf-8"
+                    else:
+                        res_headers["Content-Type"] = "text/plain; charset=utf-8"
+
+                elif hasattr(res_obj, 'type_str') and res_obj.type_str() == "ހުސް":
+                    status_code = 204
+                    res_body = b""
+
+                else:
+                    py_data = dhi_to_py(res_obj)
+                    res_body = json.dumps(py_data, ensure_ascii=False).encode('utf-8')
+                    res_headers["Content-Type"] = "application/json; charset=utf-8"
+
+                res_headers["Content-Length"] = str(len(res_body))
+
+                try:
+                    self.send_response(status_code)
+                    for hk, hv in res_headers.items():
+                        self.send_header(hk, hv)
+                    self.end_headers()
+                    if res_body:
+                        self.wfile.write(res_body)
+                except Exception:
+                    pass
+
+            def do_GET(self): self._handle_request("GET")
+            def do_POST(self): self._handle_request("POST")
+            def do_PUT(self): self._handle_request("PUT")
+            def do_DELETE(self): self._handle_request("DELETE")
+            def do_PATCH(self): self._handle_request("PATCH")
+            def do_HEAD(self): self._handle_request("HEAD")
+            def do_OPTIONS(self): self._handle_request("OPTIONS")
+
+        return DhiHTTPHandler
+
+    def net_serve(*args):
+        if len(args) < 2:
+            return obj_factory['error']("serve() / ސާވަރު() އަށް ޕޯޓަކާއި ހޭންޑްލަރ ވަޒީފާއެއް ދޭންވާނެ")
+
+        port = int(args[0].value) if hasattr(args[0], 'value') else 8080
+        handler_fn = args[1]
+
+        options = {}
+        if len(args) > 2 and hasattr(args[2], 'pairs'):
+            options = dhi_to_py(args[2])
+
+        host = options.get("host", "127.0.0.1")
+        background = bool(options.get("background", False))
+        max_requests = options.get("max_requests", None)
+        silent = bool(options.get("silent", True))
+
+        handler_cls = _create_dhi_http_handler(handler_fn, silent=silent)
+
+        try:
+            socketserver.TCPServer.allow_reuse_address = True
+            server = socketserver.ThreadingTCPServer((host, port), handler_cls)
+        except Exception as e:
+            return obj_factory['error'](f"ސާވަރު ފެށުމުގައި މައްސަލައެއް ({host}:{port}): {e}")
+
+        actual_port = server.server_address[1]
+
+        def stop_server(*_):
+            try:
+                server.shutdown()
+                server.server_close()
+                return obj_factory['boolean'](True)
+            except Exception:
+                return obj_factory['boolean'](False)
+
+        server_dict = {
+            "port": obj_factory['num'](actual_port),
+            "host": obj_factory['string'](host),
+            "stop": obj_factory['builtin'](stop_server),
+            "close": obj_factory['builtin'](stop_server),
+            "ލައްޕާ": obj_factory['builtin'](stop_server),
+            "ހުއްޓާ": obj_factory['builtin'](stop_server),
+        }
+        res_handle = obj_factory['dict'](server_dict)
+
+        if background:
+            t = threading.Thread(target=server.serve_forever, daemon=True)
+            t.start()
+            return res_handle
+        else:
+            try:
+                if max_requests is not None and int(max_requests) > 0:
+                    for _ in range(int(max_requests)):
+                        server.handle_request()
+                else:
+                    server.serve_forever()
+            except KeyboardInterrupt:
+                pass
+            finally:
+                server.server_close()
+            return res_handle
+
+    def net_create_router(*args):
+        routes = {
+            "GET": {},
+            "POST": {},
+            "PUT": {},
+            "DELETE": {},
+            "PATCH": {},
+            "ALL": {}
+        }
+
+        def _add_route(method, r_args):
+            if len(r_args) < 2:
+                return obj_factory['error'](f"{method}() އަށް މަގަކާއި ވަޒީފާއެއް ދޭންވާނެ")
+            path = r_args[0].inspect()
+            handler = r_args[1]
+            routes[method][path] = handler
+            return obj_factory['boolean'](True)
+
+        def r_get(*r_args): return _add_route("GET", r_args)
+        def r_post(*r_args): return _add_route("POST", r_args)
+        def r_put(*r_args): return _add_route("PUT", r_args)
+        def r_delete(*r_args): return _add_route("DELETE", r_args)
+        def r_patch(*r_args): return _add_route("PATCH", r_args)
+        def r_all(*r_args): return _add_route("ALL", r_args)
+
+        def r_handle(*r_args):
+            if not r_args:
+                return obj_factory['error']("handle() އަށް އެދުން (request) ދޭންވާނެ")
+            req = r_args[0]
+            if not hasattr(req, 'pairs'):
+                return obj_factory['error']("އެދުމަކީ ރަދީފަކަށް ވާންވާނެ")
+
+            method = req.pairs.get("method") or req.pairs.get("ކަން")
+            path = req.pairs.get("path") or req.pairs.get("މަގު")
+            m_str = method.inspect() if method else "GET"
+            p_str = path.inspect() if path else "/"
+
+            h = routes.get(m_str, {}).get(p_str)
+            if not h and p_str.endswith('/') and len(p_str) > 1:
+                h = routes.get(m_str, {}).get(p_str[:-1])
+            if not h:
+                h = routes.get("ALL", {}).get(p_str)
+            if not h:
+                h = routes.get(m_str, {}).get("*") or routes.get("ALL", {}).get("*")
+
+            if h:
+                return call_fn(h, [req])
+
+            return py_to_dhi({
+                "status": 404, "ކޯޑު": 404,
+                "body": f"Not Found: {m_str} {p_str}",
+                "ލިޔުން": f"ނުފެނުނު: {m_str} {p_str}"
+            })
+
+        router_dict = {
+            # English
+            "get": obj_factory['builtin'](r_get),
+            "post": obj_factory['builtin'](r_post),
+            "put": obj_factory['builtin'](r_put),
+            "delete": obj_factory['builtin'](r_delete),
+            "patch": obj_factory['builtin'](r_patch),
+            "all": obj_factory['builtin'](r_all),
+            "handle": obj_factory['builtin'](r_handle),
+
+            # Dhivehi
+            "ނަގާ": obj_factory['builtin'](r_get),
+            "ފޮނުވާ": obj_factory['builtin'](r_post),
+            "ބަދަލުކުރޭ": obj_factory['builtin'](r_put),
+            "ފޮހެލާ": obj_factory['builtin'](r_delete),
+            "ހުރިހާ": obj_factory['builtin'](r_all),
+            "ހިންގާ": obj_factory['builtin'](r_handle),
+        }
+        return obj_factory['dict'](router_dict)
+
+    def net_response_json(*args):
+        if not args:
+            return obj_factory['error']("response_json() އަށް ޑޭޓާ ދޭންވާނެ")
+        data = dhi_to_py(args[0])
+        status = int(args[1].value) if len(args) > 1 and hasattr(args[1], 'value') else 200
+        headers = {"Content-Type": "application/json; charset=utf-8"}
+        if len(args) > 2 and hasattr(args[2], 'pairs'):
+            for k, v in args[2].pairs.items():
+                headers[str(k)] = v.inspect() if hasattr(v, 'inspect') else str(v)
+
+        json_str = json.dumps(data, ensure_ascii=False)
+        return py_to_dhi({
+            "status": status, "ކޯޑު": status,
+            "body": json_str, "ލިޔުން": json_str,
+            "headers": headers, "ހެޑަރ": headers,
+            "json": data, "ޖޭސަން": data
+        })
+
+    def net_response_html(*args):
+        if not args:
+            return obj_factory['error']("response_html() އަށް އެޗްޓީއެމްއެލް ލިޔުމެއް ދޭންވާނެ")
+        html_str = args[0].inspect()
+        status = int(args[1].value) if len(args) > 1 and hasattr(args[1], 'value') else 200
+        headers = {"Content-Type": "text/html; charset=utf-8"}
+        if len(args) > 2 and hasattr(args[2], 'pairs'):
+            for k, v in args[2].pairs.items():
+                headers[str(k)] = v.inspect() if hasattr(v, 'inspect') else str(v)
+
+        return py_to_dhi({
+            "status": status, "ކޯޑު": status,
+            "body": html_str, "ލިޔުން": html_str,
+            "headers": headers, "ހެޑަރ": headers
+        })
+
+    def net_response_text(*args):
+        if not args:
+            return obj_factory['error']("response_text() އަށް ލިޔުމެއް ދޭންވާނެ")
+        text_str = args[0].inspect()
+        status = int(args[1].value) if len(args) > 1 and hasattr(args[1], 'value') else 200
+        headers = {"Content-Type": "text/plain; charset=utf-8"}
+        if len(args) > 2 and hasattr(args[2], 'pairs'):
+            for k, v in args[2].pairs.items():
+                headers[str(k)] = v.inspect() if hasattr(v, 'inspect') else str(v)
+
+        return py_to_dhi({
+            "status": status, "ކޯޑު": status,
+            "body": text_str, "ލިޔުން": text_str,
+            "headers": headers, "ހެޑަރ": headers
+        })
+
     network_module = {
         # Dhivehi
         "ނަގާ": obj_factory['builtin'](net_http_get),
@@ -462,6 +780,12 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         "ޖޭސަން_ހަދާ": obj_factory['builtin'](net_json_stringify),
         "ޔޫއާރްއެލް_އެންކޯޑް": obj_factory['builtin'](net_url_encode),
         "ޔޫއާރްއެލް_ޑީކޯޑް": obj_factory['builtin'](net_url_decode),
+        "ސާވަރު": obj_factory['builtin'](net_serve),
+        "ރައުޓަރ_ހަދާ": obj_factory['builtin'](net_create_router),
+        "ރައުޓަރ": obj_factory['builtin'](net_create_router),
+        "ޖޭސަން_ޖަވާބު": obj_factory['builtin'](net_response_json),
+        "އެޗްޓީއެމްއެލް_ޖަވާބު": obj_factory['builtin'](net_response_html),
+        "ލިޔުން_ޖަވާބު": obj_factory['builtin'](net_response_text),
 
         # English
         "get": obj_factory['builtin'](net_http_get),
@@ -472,6 +796,12 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         "stringify_json": obj_factory['builtin'](net_json_stringify),
         "url_encode": obj_factory['builtin'](net_url_encode),
         "url_decode": obj_factory['builtin'](net_url_decode),
+        "serve": obj_factory['builtin'](net_serve),
+        "create_router": obj_factory['builtin'](net_create_router),
+        "router": obj_factory['builtin'](net_create_router),
+        "response_json": obj_factory['builtin'](net_response_json),
+        "response_html": obj_factory['builtin'](net_response_html),
+        "response_text": obj_factory['builtin'](net_response_text),
     }
 
     # =========================================================================
@@ -1132,6 +1462,248 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
     }
 
     # =========================================================================
+    # 12. ޑޭޓާބޭސް (SQLite Database Module - "db" / "sqlite" / "ޑޭޓާބޭސް")
+    # =========================================================================
+    def _py_val_to_sqlite(val):
+        if val is None:
+            return None
+        if hasattr(val, 'type_str') and val.type_str() == "ހުސް":
+            return None
+        if hasattr(val, 'value'):
+            if isinstance(val.value, float) and val.value.is_integer():
+                return int(val.value)
+            return val.value
+        py = dhi_to_py(val)
+        if isinstance(py, (dict, list)):
+            return json.dumps(py, ensure_ascii=False)
+        return py
+
+    def _sqlite_val_to_dhi(val):
+        if val is None:
+            return obj_factory['null']()
+        if isinstance(val, (int, float)):
+            return obj_factory['num'](val)
+        if isinstance(val, bool):
+            return obj_factory['boolean'](val)
+        if isinstance(val, str):
+            return obj_factory['string'](val)
+        if isinstance(val, bytes):
+            return obj_factory['string'](val.decode('utf-8', errors='replace'))
+        return py_to_dhi(val)
+
+    _active_db_conn = [None]
+
+    def db_open(*args):
+        path = ":memory:"
+        if args and hasattr(args[0], 'inspect'):
+            p = args[0].inspect().strip()
+            if p:
+                path = p
+
+        try:
+            conn = sqlite3.connect(path, check_same_thread=False)
+            conn.isolation_level = None
+            conn.row_factory = sqlite3.Row
+        except Exception as e:
+            return obj_factory['error'](f"ޑޭޓާބޭސް ހުޅުވުމުގައި މައްސަލައެއް ({path}): {e}")
+
+        def _parse_params(raw_args, start_idx=1):
+            if len(raw_args) <= start_idx:
+                return []
+            p_arg = raw_args[start_idx]
+            if hasattr(p_arg, 'elements'):
+                return [_py_val_to_sqlite(x) for x in p_arg.elements]
+            return [_py_val_to_sqlite(x) for x in raw_args[start_idx:]]
+
+        def conn_execute(*c_args):
+            if not c_args:
+                return obj_factory['error']("execute() އަށް އެސްކިއުއެލް (SQL) ލިޔުމެއް ދޭންވާނެ")
+            sql = c_args[0].inspect()
+            params = _parse_params(c_args, 1)
+            try:
+                cur = conn.cursor()
+                cur.execute(sql, params)
+                res = {
+                    "last_id": cur.lastrowid if cur.lastrowid is not None else 0,
+                    "rows_affected": cur.rowcount if cur.rowcount is not None else 0,
+                    "ކުރީގެ_އައިޑީ": cur.lastrowid if cur.lastrowid is not None else 0,
+                    "ބަދަލުވި_ބަރި": cur.rowcount if cur.rowcount is not None else 0
+                }
+                return py_to_dhi(res)
+            except Exception as e:
+                return obj_factory['error'](f"އެސްކިއުއެލް ހިންގުމުގައި މައްސަލައެއް: {e}")
+
+        def conn_execute_many(*c_args):
+            if len(c_args) < 2:
+                return obj_factory['error']("execute_many() އަށް އެސްކިއުއެލް އަދި ޕެރާމީޓަރުތަކުގެ ލިސްޓެއް ދޭންވާނެ")
+            sql = c_args[0].inspect()
+            param_list_arg = c_args[1]
+            param_list = []
+            if hasattr(param_list_arg, 'elements'):
+                for item in param_list_arg.elements:
+                    if hasattr(item, 'elements'):
+                        param_list.append([_py_val_to_sqlite(x) for x in item.elements])
+                    else:
+                        param_list.append([_py_val_to_sqlite(item)])
+            else:
+                return obj_factory['error']("execute_many() އަށް ޕެރާމީޓަރުތަކުގެ ލިސްޓެއް ދޭންވާނެ")
+
+            try:
+                cur = conn.cursor()
+                cur.executemany(sql, param_list)
+                res = {
+                    "rows_affected": cur.rowcount if cur.rowcount is not None else 0,
+                    "ބަދަލުވި_ބަރި": cur.rowcount if cur.rowcount is not None else 0
+                }
+                return py_to_dhi(res)
+            except Exception as e:
+                return obj_factory['error'](f"ގިނަ އެސްކިއުއެލް ހިންގުމުގައި މައްސަލައެއް: {e}")
+
+        def conn_query(*c_args):
+            if not c_args:
+                return obj_factory['error']("query() އަށް އެސްކިއުއެލް (SQL) ލިޔުމެއް ދޭންވާނެ")
+            sql = c_args[0].inspect()
+            params = _parse_params(c_args, 1)
+            try:
+                cur = conn.cursor()
+                cur.execute(sql, params)
+                rows = cur.fetchall()
+                result_list = []
+                for row in rows:
+                    row_dict = {}
+                    for col in row.keys():
+                        row_dict[col] = _sqlite_val_to_dhi(row[col])
+                    result_list.append(obj_factory['dict'](row_dict))
+                return obj_factory['list'](result_list)
+            except Exception as e:
+                return obj_factory['error'](f"ކިއަރީ ކުރުމުގައި މައްސަލައެއް: {e}")
+
+        def conn_query_one(*c_args):
+            if not c_args:
+                return obj_factory['error']("query_one() އަށް އެސްކިއުއެލް (SQL) ލިޔުމެއް ދޭންވާނެ")
+            sql = c_args[0].inspect()
+            params = _parse_params(c_args, 1)
+            try:
+                cur = conn.cursor()
+                cur.execute(sql, params)
+                row = cur.fetchone()
+                if row is None:
+                    return obj_factory['null']()
+                row_dict = {}
+                for col in row.keys():
+                    row_dict[col] = _sqlite_val_to_dhi(row[col])
+                return obj_factory['dict'](row_dict)
+            except Exception as e:
+                return obj_factory['error'](f"ކިއަރީ ކުރުމުގައި މައްސަލައެއް: {e}")
+
+        def conn_begin(*c_args):
+            try:
+                conn.execute("BEGIN")
+                return obj_factory['boolean'](True)
+            except Exception as e:
+                return obj_factory['error'](f"ޓްރާންސެކްޝަން ފެށުމުގައި މައްސަލައެއް: {e}")
+
+        def conn_commit(*c_args):
+            try:
+                conn.execute("COMMIT")
+                return obj_factory['boolean'](True)
+            except Exception as e:
+                return obj_factory['error'](f"ޔަޤީންކުރުމުގައި (commit) މައްސަލައެއް: {e}")
+
+        def conn_rollback(*c_args):
+            try:
+                conn.execute("ROLLBACK")
+                return obj_factory['boolean'](True)
+            except Exception as e:
+                return obj_factory['error'](f"ރުޖޫޢަކުރުމުގައި (rollback) މައްސަލައެއް: {e}")
+
+        def conn_close(*c_args):
+            try:
+                conn.close()
+                if _active_db_conn[0] is conn_handle:
+                    _active_db_conn[0] = None
+                return obj_factory['boolean'](True)
+            except Exception as e:
+                return obj_factory['error'](f"ޑޭޓާބޭސް ލެއްޕުމުގައި މައްސަލައެއް: {e}")
+
+        def conn_tables(*c_args):
+            try:
+                cur = conn.cursor()
+                cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+                tables = [r[0] for r in cur.fetchall()]
+                return obj_factory['list']([obj_factory['string'](t) for t in tables])
+            except Exception as e:
+                return obj_factory['error'](f"ތާވަލުތައް ހޯދުމުގައި މައްސަލައެއް: {e}")
+
+        conn_dict = {
+            # English
+            "execute": obj_factory['builtin'](conn_execute),
+            "execute_many": obj_factory['builtin'](conn_execute_many),
+            "query": obj_factory['builtin'](conn_query),
+            "query_one": obj_factory['builtin'](conn_query_one),
+            "begin": obj_factory['builtin'](conn_begin),
+            "commit": obj_factory['builtin'](conn_commit),
+            "rollback": obj_factory['builtin'](conn_rollback),
+            "close": obj_factory['builtin'](conn_close),
+            "tables": obj_factory['builtin'](conn_tables),
+
+            # Dhivehi
+            "ހިންގާ": obj_factory['builtin'](conn_execute),
+            "ގިނައިން_ހިންގާ": obj_factory['builtin'](conn_execute_many),
+            "ހޯދާ": obj_factory['builtin'](conn_query),
+            "ކިއަރީ": obj_factory['builtin'](conn_query),
+            "އެކަތި_ހޯދާ": obj_factory['builtin'](conn_query_one),
+            "ފަށާ": obj_factory['builtin'](conn_begin),
+            "ޔަޤީންކުރޭ": obj_factory['builtin'](conn_commit),
+            "ރުޖޫޢަކުރޭ": obj_factory['builtin'](conn_rollback),
+            "ލައްޕާ": obj_factory['builtin'](conn_close),
+            "ތާވަލުތައް": obj_factory['builtin'](conn_tables),
+        }
+        conn_handle = obj_factory['dict'](conn_dict)
+        _active_db_conn[0] = conn_handle
+        return conn_handle
+
+    def db_top_execute(*args):
+        if not _active_db_conn[0]:
+            db_open()
+        return _active_db_conn[0].pairs["execute"].fn(*args)
+
+    def db_top_query(*args):
+        if not _active_db_conn[0]:
+            db_open()
+        return _active_db_conn[0].pairs["query"].fn(*args)
+
+    def db_top_query_one(*args):
+        if not _active_db_conn[0]:
+            db_open()
+        return _active_db_conn[0].pairs["query_one"].fn(*args)
+
+    def db_top_close(*args):
+        if _active_db_conn[0]:
+            return _active_db_conn[0].pairs["close"].fn(*args)
+        return obj_factory['boolean'](True)
+
+    db_module = {
+        # English
+        "open": obj_factory['builtin'](db_open),
+        "connect": obj_factory['builtin'](db_open),
+        "db_open": obj_factory['builtin'](db_open),
+        "execute": obj_factory['builtin'](db_top_execute),
+        "query": obj_factory['builtin'](db_top_query),
+        "query_one": obj_factory['builtin'](db_top_query_one),
+        "close": obj_factory['builtin'](db_top_close),
+
+        # Dhivehi
+        "ހުޅުވާ": obj_factory['builtin'](db_open),
+        "ގުޅާ": obj_factory['builtin'](db_open),
+        "ޑޭޓާބޭސް_ހުޅުވާ": obj_factory['builtin'](db_open),
+        "ހިންގާ": obj_factory['builtin'](db_top_execute),
+        "ހޯދާ": obj_factory['builtin'](db_top_query),
+        "އެކަތި_ހޯދާ": obj_factory['builtin'](db_top_query_one),
+        "ލައްޕާ": obj_factory['builtin'](db_top_close),
+    }
+
+    # =========================================================================
     # Module Registry (Dual Dhivehi and English Names)
     # =========================================================================
     return {
@@ -1147,6 +1719,8 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         "ތާނަ": thaana_math_module,
         "ކްރިޕްޓޯ": crypto_module,
         "ރެގެކްސް": regex_module,
+        "ޑޭޓާބޭސް": db_module,
+        "ޑީބީ": db_module,
 
         # English Module Identifiers
         "math": math_module,
@@ -1162,4 +1736,7 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         "thaana": thaana_math_module,
         "crypto": crypto_module,
         "regex": regex_module,
+        "db": db_module,
+        "sqlite": db_module,
+        "database": db_module,
     }

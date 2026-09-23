@@ -303,6 +303,7 @@ class Evaluator:
             'builtin': lambda fn: DhicodeBuiltin(fn),
             'py_to_dhi': python_to_dhi,
             'dhi_to_py': dhi_to_python,
+            'call_fn': lambda fn, args: self._apply_function(fn, [a if isinstance(a, DhicodeObject) else python_to_dhi(a) for a in args]),
         }
         self.stdlib = get_stdlib_modules(self.obj_factory)
 

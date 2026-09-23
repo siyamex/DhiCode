@@ -18,6 +18,7 @@ KEYWORDS = {
     "ދާއިމީ": tt.TT_CONST,
     "ވަޒީފާ": tt.TT_FUNCTION,
     "ފޮނުވާ": tt.TT_RETURN,
+    "އަނބުރާ": tt.TT_RETURN,
     "ދައްކާ": tt.TT_PRINT,
     "ނަމަ": tt.TT_IF,
     "ނޫންނަމަ": tt.TT_ELSE,

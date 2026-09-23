@@ -127,5 +127,33 @@ const EXAMPLES = {
     ދައްކާ "• " + ބަސް
 ނިމުނީ
 `
+  },
+
+  database: {
+    title: "9. ޑޭޓާބޭސް (Embedded SQLite Database)",
+    code: `// އެމްބެޑެޑް އެސްކިއުއެލް ޑޭޓާބޭސް (SQLite Database)
+ގެނޭ "ޑޭޓާބޭސް"
+
+ކަނޑައަޅާ ޑީބީ = ހުޅުވާ(":memory:")
+
+// ތާވަލު ހެދުން
+ޑީބީ.ހިންގާ("CREATE TABLE islands (id INTEGER PRIMARY KEY, name TEXT, atoll TEXT, pop INTEGER);")
+
+// ޑޭޓާ އެޅުން
+ޑީބީ.ހިންގާ("INSERT INTO islands (name, atoll, pop) VALUES (?, ?, ?);", ["މާލެ", "ކ", 215000])
+ޑީބީ.ހިންގާ("INSERT INTO islands (name, atoll, pop) VALUES (?, ?, ?);", ["ހުޅުމާލެ", "ކ", 50000])
+ޑީބީ.ހިންގާ("INSERT INTO islands (name, atoll, pop) VALUES (?, ?, ?);", ["ކުޅުދުއްފުށި", "ހދ", 10000])
+ޑީބީ.ހިންގާ("INSERT INTO islands (name, atoll, pop) VALUES (?, ?, ?);", ["ފުވައްމުލައް", "ޏ", 13000])
+
+// ކިއަރީ ކުރުން
+ކަނޑައަޅާ ރަށްތައް = ޑީބީ.ހޯދާ("SELECT * FROM islands ORDER BY pop DESC;")
+
+ދައްކާ "=== ޑޭޓާބޭސްގައިވާ ރަށްތައް ==="
+ކޮންމެ ރަށް ތެރޭގައި ރަށްތައް
+    ދައްކާ "• " + ރަށް["name"] + " (" + ރަށް["atoll"] + ") - އާބާދީ: " + ރަށް["pop"]
+ނިމުނީ
+
+ޑީބީ.ލައްޕާ()
+`
   }
 };
