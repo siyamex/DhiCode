@@ -74,19 +74,19 @@
 
 | Feature | Existing | Partial | Missing | Target |
 | :--- | :---: | :---: | :---: | :--- |
-| **Math (`ހިސާބު`)** | ✅ | | | Sqrt, pow, round, floor, ceil, min, max, random, pi |
-| **File System (`ފައިލް`)** | ✅ | | | Read, write, append, exists |
-| **Directory Operations** | | | ❌ | Directory create, list, delete, walk |
-| **Time & Date (`ވަގުތު`)** | ✅ | | | Timestamp, sleep, formatted date strings |
-| **System Info & Env (`ނިޒާމު`)** | ✅ | | | CLI arguments, exit, getenv |
-| **Network & HTTP Client (`ނެޓްވޯކް`)** | ✅ | | | HTTP GET, POST, JSON parse/stringify, URL codec |
+| **Math (`ހިސާބު` / `math`)** | ✅ | | | Sqrt, pow, round, floor, ceil, min, max, random, pi, sin, cos, tan, abs, log, e |
+| **File System (`ފައިލް` / `file`)** | ✅ | | | Read, write, append, exists, delete, size |
+| **Directory Operations** | ✅ | | | Directory create (`mkdir`), list (`list_dir`), delete (`delete`) |
+| **Time & Date (`ވަގުތު` / `time`)** | ✅ | | | Timestamp, sleep, formatted date strings, date parsing |
+| **System Info & Env (`ނިޒާމު` / `os`)** | ✅ | | | CLI arguments, exit, getenv, platform, cwd |
+| **Network & HTTP Client (`ނެޓްވޯކް` / `net`)** | ✅ | | | HTTP GET, POST, PUT, DELETE, JSON parse/stringify, URL codec |
 | **HTTP Web Server** | | | ❌ | Native micro-framework for web APIs |
 | **WebSocket Client & Server** | | | ❌ | Real-time bidirectional socket communication |
-| **Nakaiy Calendar (`ނަކަތް`)** | ✅ | | | 27 Nakaiy database, daily lookup, climate traits |
-| **Prayer Times (`ނަމާދު`)** | ✅ | | | Solar calculation for all Maldivian atolls |
-| **Thaana Words & Collation (`ތާނަ_ހިސާބު`)** | ✅ | | | Number-to-words, Thaana alphabetical sorting |
-| **Regular Expressions (`ރެގެކްސް`)** | | | ❌ | Unicode-aware pattern matching and replacement |
-| **Cryptography (`ކްރިޕްޓޯ`)** | | | ❌ | SHA-256, SHA-512, HMAC, AES encryption |
+| **Nakaiy Calendar (`ނަކަތް` / `nakaiy`)** | ✅ | | | 27 Nakaiy database, daily lookup, climate traits, monsoon determination, day counter |
+| **Prayer Times (`ނަމާދު` / `prayer`)** | ✅ | | | Solar calculation for all Maldivian atolls, next prayer, Hijri calendar converter |
+| **Thaana Words & Collation (`ތާނަ` / `thaana`)** | ✅ | | | Number-to-words, Thaana collation, fili stripping, currency MVR, Latin transliteration |
+| **Regular Expressions (`ރެގެކްސް` / `regex`)** | ✅ | | | Unicode-aware pattern matching, searching, replacement, and splitting |
+| **Cryptography (`ކްރިޕްޓޯ` / `crypto`)** | ✅ | | | SHA-256, SHA-512, MD5, HMAC-SHA256, Base64 encode/decode, secure random token |
 | **Database Abstraction (`ޑޭޓާބޭސް`)** | | | ❌ | SQLite, PostgreSQL, key-value stores |
 | **AI & Machine Learning (`އޭއައި`)** | | | ❌ | Tensors, GGUF/ONNX inference, embeddings, agents |
 

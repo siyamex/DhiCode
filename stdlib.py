@@ -1,4 +1,4 @@
-# stdlib.py - DhiCode Extended Standard Library
+# stdlib.py - DhiCode Extended Standard Library with Maldivian Cultural & Dual-Language Modules
 import math
 import time
 import os
@@ -8,6 +8,12 @@ import json
 import urllib.request
 import urllib.parse
 import urllib.error
+import hashlib
+import hmac
+import base64
+import secrets
+import re
+import platform
 from datetime import datetime, date
 from typing import Dict, Any, List
 
@@ -22,11 +28,11 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
     dhi_to_py = obj_factory.get('dhi_to_py', lambda o: o.inspect())
 
     # =========================================================================
-    # 1. ހިސާބު (Math Module)
+    # 1. ހިސާބު (Math Module - "math")
     # =========================================================================
     def math_sqrt(*args):
         if not args or not hasattr(args[0], 'value'):
-            return obj_factory['error']("ޖަޒުރު() ބޭނުންކުރަންވާނީ ނަންބަރަކާއެކު")
+            return obj_factory['error']("ޖަޒުރު() / sqrt() ބޭނުންކުރަންވާނީ ނަންބަރަކާއެކު")
         v = args[0].value
         if v < 0:
             return obj_factory['error']("ނެގަޓިވް އަދަދެއްގެ ޖަޒުރެއް ނުހޯދޭނެ")
@@ -34,40 +40,71 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
 
     def math_pow(*args):
         if len(args) < 2:
-            return obj_factory['error']("ބާރު() އަށް 2 އަދަދު ދޭންވާނެ")
+            return obj_factory['error']("ބާރު() / pow() އަށް 2 އަދަދު ދޭންވާނެ")
         return obj_factory['num'](math.pow(args[0].value, args[1].value))
 
     def math_round(*args):
         if not args:
-            return obj_factory['error']("ކައިރި() އަށް އަދަދެއް ދޭންވާނެ")
+            return obj_factory['error']("ކައިރި() / round() އަށް އަދަދެއް ދޭންވާނެ")
         return obj_factory['num'](round(args[0].value))
 
     def math_floor(*args):
         if not args:
-            return obj_factory['error']("ފްލޯރ() އަށް އަދަދެއް ދޭންވާނެ")
+            return obj_factory['error']("ފްލޯރ() / floor() އަށް އަދަދެއް ދޭންވާނެ")
         return obj_factory['num'](math.floor(args[0].value))
 
     def math_ceil(*args):
         if not args:
-            return obj_factory['error']("ސީލް() އަށް އަދަދެއް ދޭންވާނެ")
+            return obj_factory['error']("ސީލް() / ceil() އަށް އަދަދެއް ދޭންވާނެ")
         return obj_factory['num'](math.ceil(args[0].value))
 
     def math_max(*args):
         if not args:
-            return obj_factory['error']("އެންމެ_ބޮޑު() އަށް އަދަދުތަކެއް ދޭންވާނެ")
+            return obj_factory['error']("އެންމެ_ބޮޑު() / max() އަށް އަދަދުތަކެއް ދޭންވާނެ")
         return obj_factory['num'](max(a.value for a in args))
 
     def math_min(*args):
         if not args:
-            return obj_factory['error']("އެންމެ_ކުޑަ() އަށް އަދަދުތަކެއް ދޭންވާނެ")
+            return obj_factory['error']("އެންމެ_ކުޑަ() / min() އަށް އަދަދުތަކެއް ދޭންވާނެ")
         return obj_factory['num'](min(a.value for a in args))
 
     def math_random(*args):
-        min_v = int(args[0].value) if len(args) > 0 else 0
-        max_v = int(args[1].value) if len(args) > 1 else 100
+        min_v = int(args[0].value) if len(args) > 0 and hasattr(args[0], 'value') else 0
+        max_v = int(args[1].value) if len(args) > 1 and hasattr(args[1], 'value') else 100
         return obj_factory['num'](random.randint(min_v, max_v))
 
+    def math_abs(*args):
+        if not args or not hasattr(args[0], 'value'):
+            return obj_factory['error']("މުތުލަޤު() / abs() އަށް ނަންބަރެއް ދޭންވާނެ")
+        return obj_factory['num'](abs(args[0].value))
+
+    def math_sin(*args):
+        if not args or not hasattr(args[0], 'value'):
+            return obj_factory['error']("ސައިން() / sin() އަށް ނަންބަރެއް ދޭންވާނެ")
+        return obj_factory['num'](math.sin(args[0].value))
+
+    def math_cos(*args):
+        if not args or not hasattr(args[0], 'value'):
+            return obj_factory['error']("ކޮސް() / cos() އަށް ނަންބަރެއް ދޭންވާނެ")
+        return obj_factory['num'](math.cos(args[0].value))
+
+    def math_tan(*args):
+        if not args or not hasattr(args[0], 'value'):
+            return obj_factory['error']("ޓޭން() / tan() އަށް ނަންބަރެއް ދޭންވާނެ")
+        return obj_factory['num'](math.tan(args[0].value))
+
+    def math_log(*args):
+        if not args or not hasattr(args[0], 'value'):
+            return obj_factory['error']("ލޮގް() / log() އަށް ނަންބަރެއް ދޭންވާނެ")
+        v = args[0].value
+        if v <= 0:
+            return obj_factory['error']("0 ނުވަތަ ނެގަޓިވް އަދަދެއްގެ ލޮގް އެއް ނުހޯދޭނެ")
+        if len(args) > 1 and hasattr(args[1], 'value'):
+            return obj_factory['num'](math.log(v, args[1].value))
+        return obj_factory['num'](math.log(v))
+
     math_module = {
+        # Dhivehi
         "ޖަޒުރު": obj_factory['builtin'](math_sqrt),
         "ބާރު": obj_factory['builtin'](math_pow),
         "ކައިރި": obj_factory['builtin'](math_round),
@@ -76,15 +113,40 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         "އެންމެ_ބޮޑު": obj_factory['builtin'](math_max),
         "އެންމެ_ކުޑަ": obj_factory['builtin'](math_min),
         "އިއްތިފާޤު": obj_factory['builtin'](math_random),
+        "މުތުލަޤު": obj_factory['builtin'](math_abs),
+        "ސައިން": obj_factory['builtin'](math_sin),
+        "ކޮސް": obj_factory['builtin'](math_cos),
+        "ޓޭން": obj_factory['builtin'](math_tan),
+        "ލޮގް": obj_factory['builtin'](math_log),
         "ޕައި": obj_factory['num'](math.pi),
+        "އީ": obj_factory['num'](math.e),
+
+        # English
+        "sqrt": obj_factory['builtin'](math_sqrt),
+        "pow": obj_factory['builtin'](math_pow),
+        "round": obj_factory['builtin'](math_round),
+        "floor": obj_factory['builtin'](math_floor),
+        "ceil": obj_factory['builtin'](math_ceil),
+        "max": obj_factory['builtin'](math_max),
+        "min": obj_factory['builtin'](math_min),
+        "random": obj_factory['builtin'](math_random),
+        "abs": obj_factory['builtin'](math_abs),
+        "sin": obj_factory['builtin'](math_sin),
+        "cos": obj_factory['builtin'](math_cos),
+        "tan": obj_factory['builtin'](math_tan),
+        "log": obj_factory['builtin'](math_log),
+        "pi": obj_factory['num'](math.pi),
+        "PI": obj_factory['num'](math.pi),
+        "e": obj_factory['num'](math.e),
+        "E": obj_factory['num'](math.e),
     }
 
     # =========================================================================
-    # 2. ފައިލް (File System Module)
+    # 2. ފައިލް (File System Module - "file" / "fs")
     # =========================================================================
     def file_read(*args):
         if not args:
-            return obj_factory['error']("ފައިލް_ކިޔާ() އަށް ފައިލްގެ ނަން ދޭންވާނެ")
+            return obj_factory['error']("ކިޔާ() / read() އަށް ފައިލްގެ ނަން ދޭންވާނެ")
         path = args[0].inspect()
         try:
             with open(path, 'r', encoding='utf-8') as f:
@@ -95,7 +157,7 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
 
     def file_write(*args):
         if len(args) < 2:
-            return obj_factory['error']("ފައިލް_ލިޔޭ() އަށް ފައިލްގެ ނަމާއި ލިޔުން ދޭންވާނެ")
+            return obj_factory['error']("ލިޔޭ() / write() އަށް ފައިލްގެ ނަމާއި ލިޔުން ދޭންވާނެ")
         path = args[0].inspect()
         content = args[1].inspect()
         try:
@@ -107,7 +169,7 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
 
     def file_append(*args):
         if len(args) < 2:
-            return obj_factory['error']("ފައިލް_އިތުރުކުރޭ() އަށް ފައިލްގެ ނަމާއި ލިޔުން ދޭންވާނެ")
+            return obj_factory['error']("އިތުރުކުރޭ() / append() އަށް ފައިލްގެ ނަމާއި ލިޔުން ދޭންވާނެ")
         path = args[0].inspect()
         content = args[1].inspect()
         try:
@@ -123,15 +185,73 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         path = args[0].inspect()
         return obj_factory['boolean'](os.path.exists(path))
 
+    def file_delete(*args):
+        if not args:
+            return obj_factory['error']("ފޮހޭ() / delete() އަށް ފައިލްގެ ނަން ދޭންވާނެ")
+        path = args[0].inspect()
+        try:
+            if os.path.isdir(path):
+                os.rmdir(path)
+            elif os.path.exists(path):
+                os.remove(path)
+            return obj_factory['boolean'](True)
+        except Exception as e:
+            return obj_factory['error'](f"ފައިލް ފޮހުމުގައި މައްސަލައެއް: {e}")
+
+    def file_mkdir(*args):
+        if not args:
+            return obj_factory['error']("ހަދާ() / mkdir() އަށް ޑިރެކްޓަރީ ނަން ދޭންވާނެ")
+        path = args[0].inspect()
+        try:
+            os.makedirs(path, exist_ok=True)
+            return obj_factory['boolean'](True)
+        except Exception as e:
+            return obj_factory['error'](f"ޑިރެކްޓަރީ ހެދުމުގައި މައްސަލައެއް: {e}")
+
+    def file_list_dir(*args):
+        path = args[0].inspect() if args else "."
+        try:
+            entries = os.listdir(path)
+            return obj_factory['list']([obj_factory['string'](e) for e in entries])
+        except Exception as e:
+            return obj_factory['error'](f"ޑިރެކްޓަރީ ލިސްޓުކުރުމުގައި މައްސަލައެއް: {e}")
+
+    def file_size(*args):
+        if not args:
+            return obj_factory['error']("ބޮޑުމިން() / file_size() އަށް ފައިލްގެ ނަން ދޭންވާނެ")
+        path = args[0].inspect()
+        try:
+            return obj_factory['num'](os.path.getsize(path))
+        except Exception as e:
+            return obj_factory['error'](f"ފައިލްގެ ބޮޑުމިން ބެލުމުގައި މައްސަލައެއް: {e}")
+
     file_module = {
+        # Dhivehi
         "ކިޔާ": obj_factory['builtin'](file_read),
         "ލިޔޭ": obj_factory['builtin'](file_write),
         "އިތުރުކުރޭ": obj_factory['builtin'](file_append),
         "ވޭތޯ": obj_factory['builtin'](file_exists),
+        "ފޮހޭ": obj_factory['builtin'](file_delete),
+        "ހަދާ": obj_factory['builtin'](file_mkdir),
+        "ލިސްޓު_ކުރޭ": obj_factory['builtin'](file_list_dir),
+        "ބޮޑުމިން": obj_factory['builtin'](file_size),
+
+        # English
+        "read": obj_factory['builtin'](file_read),
+        "write": obj_factory['builtin'](file_write),
+        "append": obj_factory['builtin'](file_append),
+        "exists": obj_factory['builtin'](file_exists),
+        "delete": obj_factory['builtin'](file_delete),
+        "remove": obj_factory['builtin'](file_delete),
+        "mkdir": obj_factory['builtin'](file_mkdir),
+        "list_dir": obj_factory['builtin'](file_list_dir),
+        "listdir": obj_factory['builtin'](file_list_dir),
+        "size": obj_factory['builtin'](file_size),
+        "file_size": obj_factory['builtin'](file_size),
     }
 
     # =========================================================================
-    # 3. ވަގުތު (Time Module)
+    # 3. ވަގުތު (Time Module - "time")
     # =========================================================================
     def time_now(*args):
         return obj_factory['num'](time.time())
@@ -144,16 +264,53 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         return obj_factory['null']()
 
     def time_date_str(*args):
-        return obj_factory['string'](time.strftime("%Y-%m-%d %H:%M:%S"))
+        fmt = args[0].inspect() if args else "%Y-%m-%d %H:%M:%S"
+        return obj_factory['string'](time.strftime(fmt))
+
+    def time_timestamp(*args):
+        now = datetime.now()
+        y = int(args[0].value) if len(args) > 0 and hasattr(args[0], 'value') else now.year
+        m = int(args[1].value) if len(args) > 1 and hasattr(args[1], 'value') else now.month
+        d = int(args[2].value) if len(args) > 2 and hasattr(args[2], 'value') else now.day
+        hr = int(args[3].value) if len(args) > 3 and hasattr(args[3], 'value') else 0
+        mn = int(args[4].value) if len(args) > 4 and hasattr(args[4], 'value') else 0
+        sc = int(args[5].value) if len(args) > 5 and hasattr(args[5], 'value') else 0
+        try:
+            dt = datetime(y, m, d, hr, mn, sc)
+            return obj_factory['num'](dt.timestamp())
+        except Exception as e:
+            return obj_factory['error'](f"ތާރީޚް ހެދުމުގައި މައްސަލައެއް: {e}")
+
+    def time_parse_date(*args):
+        if not args:
+            return obj_factory['error']("ބަދަލުކުރޭ() / parse_date() އަށް ތާރީޚް ލިޔުން ދޭންވާނެ")
+        date_str = args[0].inspect()
+        fmt = args[1].inspect() if len(args) > 1 else "%Y-%m-%d"
+        try:
+            dt = datetime.strptime(date_str, fmt)
+            return obj_factory['num'](dt.timestamp())
+        except Exception as e:
+            return obj_factory['error'](f"ތާރީޚް ކިޔުމުގައި މައްސަލައެއް: {e}")
 
     time_module = {
+        # Dhivehi
         "މިހާރު": obj_factory['builtin'](time_now),
         "ހިނދުކޮޅު": obj_factory['builtin'](time_sleep),
         "ތާރީޚް": obj_factory['builtin'](time_date_str),
+        "ވަގުތު_ހަދާ": obj_factory['builtin'](time_timestamp),
+        "ބަދަލުކުރޭ": obj_factory['builtin'](time_parse_date),
+
+        # English
+        "now": obj_factory['builtin'](time_now),
+        "sleep": obj_factory['builtin'](time_sleep),
+        "format": obj_factory['builtin'](time_date_str),
+        "date_str": obj_factory['builtin'](time_date_str),
+        "timestamp": obj_factory['builtin'](time_timestamp),
+        "parse_date": obj_factory['builtin'](time_parse_date),
     }
 
     # =========================================================================
-    # 4. ނިޒާމު (System Module)
+    # 4. ނިޒާމު (System & OS Module - "os" / "sys")
     # =========================================================================
     def sys_argv(*args):
         args_list = [obj_factory['string'](a) for a in sys.argv]
@@ -169,67 +326,40 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         key = args[0].inspect()
         return obj_factory['string'](os.environ.get(key, ""))
 
+    def sys_platform(*args):
+        return obj_factory['string'](sys.platform)
+
+    def sys_cwd(*args):
+        return obj_factory['string'](os.getcwd())
+
     system_module = {
+        # Dhivehi
         "އާގިއުމެންޓުތައް": obj_factory['builtin'](sys_argv),
         "ހުއްޓާ": obj_factory['builtin'](sys_exit),
         "އެންވައިރޮންމެންޓް": obj_factory['builtin'](sys_getenv),
+        "ޕްލެޓްފޯމް": obj_factory['builtin'](sys_platform),
+        "މަގު": obj_factory['builtin'](sys_cwd),
+
+        # English
+        "args": obj_factory['builtin'](sys_argv),
+        "argv": obj_factory['builtin'](sys_argv),
+        "exit": obj_factory['builtin'](sys_exit),
+        "getenv": obj_factory['builtin'](sys_getenv),
+        "platform": obj_factory['builtin'](sys_platform),
+        "cwd": obj_factory['builtin'](sys_cwd),
     }
 
     # =========================================================================
-    # 5. ނެޓްވޯކް (Network & JSON Module) [Option 1]
+    # 5. ނެޓްވޯކް (Network, HTTP & JSON Module - "net" / "http")
     # =========================================================================
-    def net_http_get(*args):
+    def _execute_http(method: str, args):
         if not args:
-            return obj_factory['error']("ނަގާ() އަށް ޔޫއާރްއެލް (URL) ދޭންވާނެ")
-        url = args[0].inspect()
-        headers = {}
-        if len(args) > 1:
-            raw_h = dhi_to_py(args[1])
-            if isinstance(raw_h, dict):
-                headers = {str(k): str(v) for k, v in raw_h.items()}
-
-        if "User-Agent" not in headers:
-            headers["User-Agent"] = "DhiCode/0.3.0"
-
-        try:
-            req = urllib.request.Request(url, headers=headers, method="GET")
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                status_code = resp.status
-                body_bytes = resp.read()
-                body_text = body_bytes.decode('utf-8', errors='replace')
-                resp_headers = dict(resp.headers)
-
-                parsed_json = None
-                try:
-                    parsed_json = json.loads(body_text)
-                except Exception:
-                    parsed_json = None
-
-                return py_to_dhi({
-                    "ކޯޑު": status_code,
-                    "ލިޔުން": body_text,
-                    "ހެޑަރ": resp_headers,
-                    "ޖޭސަން": parsed_json
-                })
-        except urllib.error.HTTPError as e:
-            body = e.read().decode('utf-8', errors='replace') if hasattr(e, 'read') else ""
-            return py_to_dhi({
-                "ކޯޑު": e.code,
-                "ލިޔުން": body,
-                "ހެޑަރ": dict(e.headers) if hasattr(e, 'headers') else {},
-                "ޖޭސަން": None
-            })
-        except Exception as e:
-            return obj_factory['error'](f"ނެޓްވޯކް މައްސަލައެއް: {e}")
-
-    def net_http_post(*args):
-        if not args:
-            return obj_factory['error']("ފޮނުވާ() އަށް ޔޫއާރްއެލް (URL) ދޭންވާނެ")
+            return obj_factory['error'](f"{method}() އަށް ޔޫއާރްއެލް (URL) ދޭންވާނެ")
         url = args[0].inspect()
         data = None
         headers = {}
 
-        if len(args) > 1:
+        if method in ("POST", "PUT") and len(args) > 1:
             raw_data = dhi_to_py(args[1])
             if isinstance(raw_data, (dict, list)):
                 data = json.dumps(raw_data, ensure_ascii=False).encode('utf-8')
@@ -239,49 +369,60 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
             else:
                 data = str(raw_data).encode('utf-8')
 
-        if len(args) > 2:
-            raw_h = dhi_to_py(args[2])
+        header_idx = 2 if method in ("POST", "PUT") else 1
+        if len(args) > header_idx:
+            raw_h = dhi_to_py(args[header_idx])
             if isinstance(raw_h, dict):
                 for k, v in raw_h.items():
                     headers[str(k)] = str(v)
 
         if "User-Agent" not in headers:
-            headers["User-Agent"] = "DhiCode/0.3.0"
+            headers["User-Agent"] = "DhiCode/0.4.0"
 
         try:
-            req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+            req = urllib.request.Request(url, data=data, headers=headers, method=method)
             with urllib.request.urlopen(req, timeout=10) as resp:
                 status_code = resp.status
                 body_bytes = resp.read()
                 body_text = body_bytes.decode('utf-8', errors='replace')
                 resp_headers = dict(resp.headers)
-
-                parsed_json = None
                 try:
                     parsed_json = json.loads(body_text)
                 except Exception:
                     parsed_json = None
 
                 return py_to_dhi({
-                    "ކޯޑު": status_code,
-                    "ލިޔުން": body_text,
-                    "ހެޑަރ": resp_headers,
-                    "ޖޭސަން": parsed_json
+                    "ކޯޑު": status_code, "status": status_code,
+                    "ލިޔުން": body_text, "body": body_text,
+                    "ހެޑަރ": resp_headers, "headers": resp_headers,
+                    "ޖޭސަން": parsed_json, "json": parsed_json
                 })
         except urllib.error.HTTPError as e:
             body = e.read().decode('utf-8', errors='replace') if hasattr(e, 'read') else ""
             return py_to_dhi({
-                "ކޯޑު": e.code,
-                "ލިޔުން": body,
-                "ހެޑަރ": dict(e.headers) if hasattr(e, 'headers') else {},
-                "ޖޭސަން": None
+                "ކޯޑު": e.code, "status": e.code,
+                "ލިޔުން": body, "body": body,
+                "ހެޑަރ": dict(e.headers) if hasattr(e, 'headers') else {}, "headers": dict(e.headers) if hasattr(e, 'headers') else {},
+                "ޖޭސަން": None, "json": None
             })
         except Exception as e:
-            return obj_factory['error'](f"ނެޓްވޯކް މައްސަލައެއް: {e}")
+            return obj_factory['error'](f"ނެޓްވޯކް މައްސަލައެއް ({method}): {e}")
+
+    def net_http_get(*args):
+        return _execute_http("GET", args)
+
+    def net_http_post(*args):
+        return _execute_http("POST", args)
+
+    def net_http_put(*args):
+        return _execute_http("PUT", args)
+
+    def net_http_delete(*args):
+        return _execute_http("DELETE", args)
 
     def net_json_parse(*args):
         if not args:
-            return obj_factory['error']("ޖޭސަން_ކިޔާ() އަށް ލިޔުމެއް ދޭންވާނެ")
+            return obj_factory['error']("ޖޭސަން_ކިޔާ() / parse_json() އަށް ލިޔުމެއް ދޭންވާނެ")
         raw = args[0].inspect()
         try:
             data = json.loads(raw)
@@ -291,7 +432,7 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
 
     def net_json_stringify(*args):
         if not args:
-            return obj_factory['error']("ޖޭސަން_ހަދާ() އަށް އެއްޗެއް ދޭންވާނެ")
+            return obj_factory['error']("ޖޭސަން_ހަދާ() / stringify_json() އަށް އެއްޗެއް ދޭންވާނެ")
         py_data = dhi_to_py(args[0])
         try:
             res = json.dumps(py_data, ensure_ascii=False, indent=2)
@@ -312,49 +453,61 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         return obj_factory['string'](urllib.parse.unquote(val))
 
     network_module = {
+        # Dhivehi
         "ނަގާ": obj_factory['builtin'](net_http_get),
         "ފޮނުވާ": obj_factory['builtin'](net_http_post),
+        "ބަދަލުކުރޭ": obj_factory['builtin'](net_http_put),
+        "ފޮހެލާ": obj_factory['builtin'](net_http_delete),
         "ޖޭސަން_ކިޔާ": obj_factory['builtin'](net_json_parse),
         "ޖޭސަން_ހަދާ": obj_factory['builtin'](net_json_stringify),
         "ޔޫއާރްއެލް_އެންކޯޑް": obj_factory['builtin'](net_url_encode),
         "ޔޫއާރްއެލް_ޑީކޯޑް": obj_factory['builtin'](net_url_decode),
+
+        # English
+        "get": obj_factory['builtin'](net_http_get),
+        "post": obj_factory['builtin'](net_http_post),
+        "put": obj_factory['builtin'](net_http_put),
+        "delete": obj_factory['builtin'](net_http_delete),
+        "parse_json": obj_factory['builtin'](net_json_parse),
+        "stringify_json": obj_factory['builtin'](net_json_stringify),
+        "url_encode": obj_factory['builtin'](net_url_encode),
+        "url_decode": obj_factory['builtin'](net_url_decode),
     }
 
     # =========================================================================
-    # 6. ނަކަތް (Maldivian Nakaiy Calendar Module) [Option 2]
+    # 6. ނަކަތް (Maldivian Nakaiy Calendar Module - "nakaiy")
     # =========================================================================
-    # 27 traditional Maldivian Nakaiy with date bounds (month, day) and climate features
     NAKAIY_LIST = [
         # --- Hulhangu (South-West Monsoon) - 18 Nakaiy ---
-        {"ނަން": "އައްސިދަ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "04-08", "ނިމެނީ": "04-21", "ދިގުމިން": 14, "ސިފަ": "ވިއްސާރަ، ގުގުރުން އަދި ކަނޑުގަދަ"},
-        {"ނަން": "ބުރަނަ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "04-22", "ނިމެނީ": "05-05", "ދިގުމިން": 14, "ސިފަ": "ކޮޅިގަނޑު، ވައިގަދަވުން"},
-        {"ނަން": "ކެތި", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "05-06", "ނިމެނީ": "05-19", "ދިގުމިން": 14, "ސިފަ": "ވިލާ ބޯވުން، ވާރޭ ވެހުން"},
-        {"ނަން": "ރޯނު", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "05-20", "ނިމެނީ": "06-02", "ދިގުމިން": 14, "ސިފަ": "ވައި ބާރުވެ ބޮޑެތި ރާޅުތައް ނެގުން"},
-        {"ނަން": "މިއަހެލި", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "06-03", "ނިމެނީ": "06-16", "ދިގުމިން": 14, "ސިފަ": "ކުއްލިއަކަށް އަންނަ ބާރު ވިއްސާރަ"},
-        {"ނަން": "އަދަ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "06-17", "ނިމެނީ": "06-30", "ދިގުމިން": 14, "ސިފަ": "ވައިބާރުވެ ދޭތެރެދޭތެރެއިން ވާރޭވެހުން"},
-        {"ނަން": "ފުނަ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "07-01", "ނިމެނީ": "07-14", "ދިގުމިން": 14, "ސިފަ": "ކަނޑު ގަދަވެ ވައި ބާރުވުން"},
-        {"ނަން": "ފުސް", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "07-15", "ނިމެނީ": "07-27", "ދިގުމިން": 13, "ސިފަ": "ވިލާ ބޯވެ ބަނަކޮށް އޮތުން"},
-        {"ނަން": "އަހުލިހަ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "07-28", "ނިމެނީ": "08-09", "ދިގުމިން": 13, "ސިފަ": "މަޑުމައިތިރި ކަނޑު، ދޭތެރެއިން ވާރޭ"},
-        {"ނަން": "މާ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "08-10", "ނިމެނީ": "08-22", "ދިގުމިން": 13, "ސިފަ": "މަޑު ވައިރޯޅި، އުޑުމަތި ސާފުވުން"},
-        {"ނަން": "ފުރަ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "08-23", "ނިމެނީ": "09-04", "ދިގުމިން": 13, "ސިފަ": "އަރިއަރިޔަށް ވާރޭ ވެހުން"},
-        {"ނަން": "އުތުރަ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "09-05", "ނިމެނީ": "09-17", "ދިގުމިން": 13, "ސިފަ": "ބޯކޮށް ވާރޭވެހި ވައި ބާރުވުން"},
-        {"ނަން": "އަތަ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "09-18", "ނިމެނީ": "09-30", "ދިގުމިން": 13, "ސިފަ": "އަވިދޭ، ދޭތެރެއިން ކުއްލި ވިއްސާރަ"},
-        {"ނަން": "ހިތަ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "10-01", "ނިމެނީ": "10-13", "ދިގުމިން": 13, "ސިފަ": "މަޑު ވައި، މަސްވެރިކަން ރަނގަޅުވުން"},
-        {"ނަން": "ހޭ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "10-14", "ނިމެނީ": "10-26", "ދިގުމިން": 13, "ސިފަ": "ގަދަ ވައި، މޫސުމީ ބަދަލުތައް"},
-        {"ނަން": "ވިހާ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "10-27", "ނިމެނީ": "11-09", "ދިގުމިން": 14, "ސިފަ": "މަޑު ވައި، މަސްވެރިކަން ވަރަށް ރަނގަޅު"},
-        {"ނަން": "ނޮރޮ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "11-10", "ނިމެނީ": "11-22", "ދިގުމިން": 13, "ސިފަ": "ފުސް ވިލާ، ލުއި ވިއްސާރަ"},
-        {"ނަން": "ދޮށަ", "މޫސުން": "ހުޅަނގު", "ފެށެނީ": "11-23", "ނިމެނީ": "12-06", "ދިގުމިން": 14, "ސިފަ": "ހުޅަނގު މޫސުމުގެ އެންމެ ފަހު ނަކަތް"},
+        {"ނަން": "އައްސިދަ", "name": "Assidha", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "04-08", "ނިމެނީ": "04-21", "ދިގުމިން": 14, "ސިފަ": "ވިއްސާރަ، ގުގުރުން އަދި ކަނޑުގަދަ"},
+        {"ނަން": "ބުރަނަ", "name": "Burana", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "04-22", "ނިމެނީ": "05-05", "ދިގުމިން": 14, "ސިފަ": "ކޮޅިގަނޑު، ވައިގަދަވުން"},
+        {"ނަން": "ކެތި", "name": "Kethi", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "05-06", "ނިމެނީ": "05-19", "ދިގުމިން": 14, "ސިފަ": "ވިލާ ބޯވުން، ވާރޭ ވެހުން"},
+        {"ނަން": "ރޯނު", "name": "Roanu", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "05-20", "ނިމެނީ": "06-02", "ދިގުމިން": 14, "ސިފަ": "ވައި ބާރުވެ ބޮޑެތި ރާޅުތައް ނެގުން"},
+        {"ނަން": "މިއަހެލި", "name": "Miaheli", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "06-03", "ނިމެނީ": "06-16", "ދިގުމިން": 14, "ސިފަ": "ކުއްލިއަކަށް އަންނަ ބާރު ވިއްސާރަ"},
+        {"ނަން": "އަދަ", "name": "Adha", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "06-17", "ނިމެނީ": "06-30", "ދިގުމިން": 14, "ސިފަ": "ވައިބާރުވެ ދޭތެރެދޭތެރެއިން ވާރޭވެހުން"},
+        {"ނަން": "ފުނަ", "name": "Funa", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "07-01", "ނިމެނީ": "07-14", "ދިގުމިން": 14, "ސިފަ": "ކަނޑު ގަދަވެ ވައި ބާރުވުން"},
+        {"ނަން": "ފުސް", "name": "Fus", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "07-15", "ނިމެނީ": "07-27", "ދިގުމިން": 13, "ސިފަ": "ވިލާ ބޯވެ ބަނަކޮށް އޮތުން"},
+        {"ނަން": "އަހުލިހަ", "name": "Ahuliha", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "07-28", "ނިމެނީ": "08-09", "ދިގުމިން": 13, "ސިފަ": "މަޑުމައިތިރި ކަނޑު، ދޭތެރެއިން ވާރޭ"},
+        {"ނަން": "މާ", "name": "Maa", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "08-10", "ނިމެނީ": "08-22", "ދިގުމިން": 13, "ސިފަ": "މަޑު ވައިރޯޅި، އުޑުމަތި ސާފުވުން"},
+        {"ނަން": "ފުރަ", "name": "Fura", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "08-23", "ނިމެނީ": "09-04", "ދިގުމިން": 13, "ސިފަ": "އަރިއަރިޔަށް ވާރޭ ވެހުން"},
+        {"ނަން": "އުތުރަ", "name": "Uthura", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "09-05", "ނިމެނީ": "09-17", "ދިގުމިން": 13, "ސިފަ": "ބޯކޮށް ވާރޭވެހި ވައި ބާރުވުން"},
+        {"ނަން": "އަތަ", "name": "Atha", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "09-18", "ނިމެނީ": "09-30", "ދިގުމިން": 13, "ސިފަ": "އަވިދޭ، ދޭތެރެއިން ކުއްލި ވިއްސާރަ"},
+        {"ނަން": "ހިތަ", "name": "Hitha", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "10-01", "ނިމެނީ": "10-13", "ދިގުމިން": 13, "ސިފަ": "މަޑު ވައި، މަސްވެރިކަން ރަނގަޅުވުން"},
+        {"ނަން": "ހޭ", "name": "Hey", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "10-14", "ނިމެނީ": "10-26", "ދިގުމިން": 13, "ސިފަ": "ގަދަ ވައި، މޫސުމީ ބަދަލުތައް"},
+        {"ނަން": "ވިހާ", "name": "Vihaa", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "10-27", "ނިމެނީ": "11-09", "ދިގުމިން": 14, "ސިފަ": "މަޑު ވައި، މަސްވެރިކަން ވަރަށް ރަނގަޅު"},
+        {"ނަން": "ނޮރޮ", "name": "Noro", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "11-10", "ނިމެނީ": "11-22", "ދިގުމިން": 13, "ސިފަ": "ފުސް ވިލާ، ލުއި ވިއްސާރަ"},
+        {"ނަން": "ދޮށަ", "name": "Dhosha", "މޫސުން": "ހުޅަނގު", "monsoon": "Hulhangu", "ފެށެނީ": "11-23", "ނިމެނީ": "12-06", "ދިގުމިން": 14, "ސިފަ": "ހުޅަނގު މޫސުމުގެ އެންމެ ފަހު ނަކަތް"},
 
         # --- Iruvai (North-East Monsoon) - 9 Nakaiy ---
-        {"ނަން": "މުލަ", "މޫސުން": "އިރުވައި", "ފެށެނީ": "12-07", "ނިމެނީ": "12-19", "ދިގުމިން": 13, "ސިފަ": "އިރުވައި މޫސުމުގެ ފެށުން، ގަދަ ވައި"},
-        {"ނަން": "ފުރަހަޅަ", "މޫސުން": "އިރުވައި", "ފެށެނީ": "12-20", "ނިމެނީ": "01-01", "ދިގުމިން": 13, "ސިފަ": "ވައި ބާރުވެ ކަނޑު ގަދަވުން"},
-        {"ނަން": "އުތުރުހަޅަ", "މޫސުން": "އިރުވައި", "ފެށެނީ": "01-02", "ނިމެނީ": "01-14", "ދިގުމިން": 13, "ސިފަ": "ސާފު އުޑުމަތި، ފިނި ރޯޅި"},
-        {"ނަން": "ހުވަން", "މޫސުން": "އިރުވައި", "ފެށެނީ": "01-15", "ނިމެނީ": "01-27", "ދިގުމިން": 13, "ސިފަ": "ހިމޭން ކަނޑު، އަވިގަދަ ރީތި ދުވަސްތައް"},
-        {"ނަން": "ދިނަޝަ", "މޫސުން": "އިރުވައި", "ފެށެނީ": "01-28", "ނިމެނީ": "02-09", "ދިގުމިން": 13, "ސިފަ": "މަޑު ވައި، ހިތްފަސޭހަ މޫސުން"},
-        {"ނަން": "ހިޔަވިހާ", "މޫސުން": "އިރުވައި", "ފެށެނީ": "02-10", "ނިމެނީ": "02-22", "ދިގުމިން": 13, "ސިފަ": "ވަރަށް ހިމޭން މަޑު ކަނޑު، ހޫނުގަދަ"},
-        {"ނަން": "ވައިވައި", "މޫސުން": "އިރުވައި", "ފެށެނީ": "02-23", "ނިމެނީ": "03-07", "ދިގުމިން": 13, "ސިފަ": "އެކި ދިމަދިމާއިން ވައި ޖެހުން"},
-        {"ނަން": "ފަސްބުރުނު", "މޫސުން": "އިރުވައި", "ފެށެނީ": "03-08", "ނިމެނީ": "03-20", "ދިގުމިން": 13, "ސިފަ": "ކުއްލި ވިއްސާރަ، ހޫނުގަދަވުން"},
-        {"ނަން": "ފޭބުރުނު", "މޫސުން": "އިރުވައި", "ފެށެނީ": "03-21", "ނިމެނީ": "04-07", "ދިގުމިން": 18, "ސިފަ": "އިރުވައި މޫސުމުގެ ނިމުން، މަޑުމައިތިރި"}
+        {"ނަން": "މުލަ", "name": "Mula", "މޫސުން": "އިރުވައި", "monsoon": "Iruvai", "ފެށެނީ": "12-07", "ނިމެނީ": "12-19", "ދިގުމިން": 13, "ސިފަ": "އިރުވައި މޫސުމުގެ ފެށުން، ގަދަ ވައި"},
+        {"ނަން": "ފުރަހަޅަ", "name": "Furahala", "މޫސުން": "އިރުވައި", "monsoon": "Iruvai", "ފެށެނީ": "12-20", "ނިމެނީ": "01-01", "ދިގުމިން": 13, "ސިފަ": "ވައި ބާރުވެ ކަނޑު ގަދަވުން"},
+        {"ނަން": "އުތުރުހަޅަ", "name": "Uthuruhala", "މޫސުން": "އިރުވައި", "monsoon": "Iruvai", "ފެށެނީ": "01-02", "ނިމެނީ": "01-14", "ދިގުމިން": 13, "ސިފަ": "ސާފު އުޑުމަތި، ފިނި ރޯޅި"},
+        {"ނަން": "ހުވަން", "name": "Huvan", "މޫސުން": "އިރުވައި", "monsoon": "Iruvai", "ފެށެނީ": "01-15", "ނިމެނީ": "01-27", "ދިގުމިން": 13, "ސިފަ": "ހިމޭން ކަނޑު، އަވިގަދަ ރީތި ދުވަސްތައް"},
+        {"ނަން": "ދިނަޝަ", "name": "Dhinasha", "މޫސުން": "އިރުވައި", "monsoon": "Iruvai", "ފެށެނީ": "01-28", "ނިމެނީ": "02-09", "ދިގުމިން": 13, "ސިފަ": "މަޑު ވައި، ހިތްފަސޭހަ މޫސުން"},
+        {"ނަން": "ހިޔަވިހާ", "name": "Hiyavihaa", "މޫސުން": "އިރުވައި", "monsoon": "Iruvai", "ފެށެނީ": "02-10", "ނިމެނީ": "02-22", "ދިގުމިން": 13, "ސިފަ": "ވަރަށް ހިމޭން މަޑު ކަނޑު، ހޫނުގަދަ"},
+        {"ނަން": "ވައިވައި", "name": "Vaivai", "މޫސުން": "އިރުވައި", "monsoon": "Iruvai", "ފެށެނީ": "02-23", "ނިމެނީ": "03-07", "ދިގުމިން": 13, "ސިފަ": "އެކި ދިމަދިމާއިން ވައި ޖެހުން"},
+        {"ނަން": "ފަސްބުރުނު", "name": "Fasburunu", "މޫސުން": "އިރުވައި", "monsoon": "Iruvai", "ފެށެނީ": "03-08", "ނިމެނީ": "03-20", "ދިގުމިން": 13, "ސިފަ": "ކުއްލި ވިއްސާރަ، ހޫނުގަދަވުން"},
+        {"ނަން": "ފޭބުރުނު", "name": "Faeburunu", "މޫސުން": "އިރުވައި", "monsoon": "Iruvai", "ފެށެނީ": "03-21", "ނިމެނީ": "04-07", "ދިގުމިން": 18, "ސިފަ": "އިރުވައި މޫސުމުގެ ނިމުން، މަޑުމައިތިރި"}
     ]
 
     def _find_nakaiy_by_date(m: int, d: int) -> Dict[str, Any]:
@@ -366,7 +519,6 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
                 if start <= target <= end:
                     return n
             else:
-                # wraps around new year (e.g. 12-20 to 01-01)
                 if target >= start or target <= end:
                     return n
         return NAKAIY_LIST[0]
@@ -378,7 +530,7 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
 
     def nakaiy_lookup(*args):
         if len(args) < 2:
-            return obj_factory['error']("ނަކަތް_ހޯދާ() އަށް މަހާއި ދުވަސް ދޭންވާނެ (މިސާލު: ނަކަތް_ހޯދާ(5, 12))")
+            return obj_factory['error']("ނަކަތް_ހޯދާ() / lookup() އަށް މަހާއި ދުވަސް ދޭންވާނެ")
         m = int(args[0].value) if hasattr(args[0], 'value') else int(args[0])
         d = int(args[1].value) if hasattr(args[1], 'value') else int(args[1])
         nak = _find_nakaiy_by_date(m, d)
@@ -387,99 +539,136 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
     def nakaiy_all(*args):
         return py_to_dhi(NAKAIY_LIST)
 
+    def nakaiy_monsoon(*args):
+        if args and hasattr(args[0], 'value'):
+            m = int(args[0].value)
+            d = int(args[1].value) if len(args) > 1 and hasattr(args[1], 'value') else 1
+            nak = _find_nakaiy_by_date(m, d)
+        else:
+            now = datetime.now()
+            nak = _find_nakaiy_by_date(now.month, now.day)
+        return obj_factory['string'](nak["މޫސުން"])
+
+    def nakaiy_day(*args):
+        if args and hasattr(args[0], 'value'):
+            m = int(args[0].value)
+            d = int(args[1].value) if len(args) > 1 and hasattr(args[1], 'value') else 1
+            current_date = date(datetime.now().year, m, d)
+            nak = _find_nakaiy_by_date(m, d)
+        else:
+            now = datetime.now()
+            current_date = now.date()
+            nak = _find_nakaiy_by_date(now.month, now.day)
+
+        start_m, start_d = map(int, nak["ފެށެނީ"].split("-"))
+        y = current_date.year
+        if start_m == 12 and current_date.month == 1:
+            start_date = date(y - 1, start_m, start_d)
+        else:
+            start_date = date(y, start_m, start_d)
+
+        day_num = (current_date - start_date).days + 1
+        return obj_factory['num'](max(1, day_num))
+
     nakaiy_module = {
+        # Dhivehi
         "މިއަދުގެ_ނަކަތް": obj_factory['builtin'](nakaiy_today),
         "ނަކަތް_ހޯދާ": obj_factory['builtin'](nakaiy_lookup),
         "ހުރިހާ_ނަކަތް": obj_factory['builtin'](nakaiy_all),
+        "މޫސުން": obj_factory['builtin'](nakaiy_monsoon),
+        "ނަކަތް_ދުވަސް": obj_factory['builtin'](nakaiy_day),
+
+        # English
+        "today": obj_factory['builtin'](nakaiy_today),
+        "lookup": obj_factory['builtin'](nakaiy_lookup),
+        "all": obj_factory['builtin'](nakaiy_all),
+        "monsoon": obj_factory['builtin'](nakaiy_monsoon),
+        "nakaiy_day": obj_factory['builtin'](nakaiy_day),
+        "day": obj_factory['builtin'](nakaiy_day),
     }
 
     # =========================================================================
-    # 7. ނަމާދު (Maldivian Prayer Times Module) [Option 2]
+    # 7. ނަމާދު (Maldivian Prayer Times & Hijri Calendar - "prayer")
     # =========================================================================
-    # Accurate coordinates for Maldivian atolls/cities
     ATOLL_COORDS = {
         "މާލެ": (4.1755, 73.5093),
+        "Male": (4.1755, 73.5093),
         "ހުޅުމާލެ": (4.2133, 73.5414),
+        "Hulhumale": (4.2133, 73.5414),
         "ވިލިމާލެ": (4.1736, 73.4844),
+        "Vilimale": (4.1736, 73.4844),
         "އައްޑޫ": (-0.6300, 73.1600),
+        "Addu": (-0.6300, 73.1600),
         "ފުވައްމުލައް": (-0.2980, 73.4240),
+        "Fuvahmulah": (-0.2980, 73.4240),
         "ކުޅުދުއްފުށި": (6.6220, 73.0700),
+        "Kulhudhuffushi": (6.6220, 73.0700),
         "ތިނަދޫ": (0.5310, 72.9960),
-        "ހއ": (6.9000, 72.9000),
-        "ހދ": (6.6000, 73.0000),
-        "ށ": (6.2000, 73.1000),
-        "ނ": (5.8000, 73.3000),
-        "ރ": (5.6000, 72.9000),
-        "ބ": (5.1000, 72.9000),
-        "ޅ": (5.4000, 73.6000),
-        "ކ": (4.4000, 73.5000),
-        "އއ": (4.0000, 72.8000),
-        "އދ": (3.6000, 72.8000),
-        "ވ": (3.4000, 73.5000),
-        "މ": (2.9000, 73.5000),
-        "ފ": (3.1000, 72.9000),
-        "ދ": (2.7000, 72.9000),
-        "ތ": (2.2000, 73.1000),
-        "ލ": (1.9000, 73.4000),
-        "ގއ": (0.7000, 73.4000),
-        "ގދ": (0.4000, 73.1000),
-        "ޏ": (-0.3000, 73.4200),
-        "ސ": (-0.6300, 73.1600),
+        "Thinadhoo": (0.5310, 72.9960),
+        "ހއ": (6.9000, 72.9000), "HA": (6.9000, 72.9000),
+        "ހދ": (6.6000, 73.0000), "HDh": (6.6000, 73.0000),
+        "ށ": (6.2000, 73.1000),  "Sh": (6.2000, 73.1000),
+        "ނ": (5.8000, 73.3000),  "N": (5.8000, 73.3000),
+        "ރ": (5.6000, 72.9000),  "R": (5.6000, 72.9000),
+        "ބ": (5.1000, 72.9000),  "B": (5.1000, 72.9000),
+        "ޅ": (5.4000, 73.6000),  "Lh": (5.4000, 73.6000),
+        "ކ": (4.4000, 73.5000),  "K": (4.4000, 73.5000),
+        "އއ": (4.0000, 72.8000), "AA": (4.0000, 72.8000),
+        "އދ": (3.6000, 72.8000), "ADh": (3.6000, 72.8000),
+        "ވ": (3.4000, 73.5000),  "V": (3.4000, 73.5000),
+        "މ": (2.9000, 73.5000),  "M": (2.9000, 73.5000),
+        "ފ": (3.1000, 72.9000),  "F": (3.1000, 72.9000),
+        "ދ": (2.7000, 72.9000),  "Dh": (2.7000, 72.9000),
+        "ތ": (2.2000, 73.1000),  "Th": (2.2000, 73.1000),
+        "ލ": (1.9000, 73.4000),  "L": (1.9000, 73.4000),
+        "ގއ": (0.7000, 73.4000), "GA": (0.7000, 73.4000),
+        "ގދ": (0.4000, 73.1000), "GDh": (0.4000, 73.1000),
+        "ޏ": (-0.3000, 73.4200), "Gn": (-0.3000, 73.4200),
+        "ސ": (-0.6300, 73.1600), "S": (-0.6300, 73.1600),
     }
 
+    HIJRI_MONTHS = [
+        "މުޙައްރަމް", "ޞަފަރު", "ރަބީޢުލްއައްވަލް", "ރަބީޢުލްއާޚިރު",
+        "ޖުމާދަލްއޫލާ", "ޖުމާދަލްއާޚިރާ", "ރަޖަބު", "ޝަޢުބާން",
+        "ރަމަޟާން", "ޝައްވާލް", "ޛުލްޤަޢިދާ", "ޛުލްޙިއްޖާ"
+    ]
+
     def _calc_prayer_times(lat: float, lon: float, year: int, month: int, day: int) -> Dict[str, str]:
-        # Astronomical calculation based on solar declination and equation of time
         d = date(year, month, day)
         day_of_year = d.timetuple().tm_yday
-
-        # Fractional year in radians
         gamma = 2 * math.pi / 365 * (day_of_year - 1)
 
-        # Equation of time in minutes
         eqtime = 229.18 * (0.000075 + 0.001868 * math.cos(gamma) - 0.032077 * math.sin(gamma)
                            - 0.014615 * math.cos(2 * gamma) - 0.040849 * math.sin(2 * gamma))
-
-        # Solar declination in radians
         decl = 0.006918 - 0.399912 * math.cos(gamma) + 0.070257 * math.sin(gamma) \
                - 0.006758 * math.cos(2 * gamma) + 0.000907 * math.sin(2 * gamma)
 
         lat_rad = math.radians(lat)
-        timezone = 5.0 # Maldives UTC+5
-
-        # Solar noon (transit) in hours
+        timezone = 5.0
         solar_noon = 12 + (4 * (timezone * 15 - lon) - eqtime) / 60
 
         def _hour_angle(angle_deg: float) -> float:
-            # angle_deg: altitude of sun (negative when below horizon)
             rad = math.radians(angle_deg)
             cos_ha = (math.sin(rad) - math.sin(lat_rad) * math.sin(decl)) / (math.cos(lat_rad) * math.cos(decl))
             cos_ha = max(-1.0, min(1.0, cos_ha))
             return math.degrees(math.acos(cos_ha)) / 15.0
 
-        # Fajr: 18° below horizon (-18)
         ha_fajr = _hour_angle(-18.0)
         t_fajr = solar_noon - ha_fajr
 
-        # Sunrise: -0.833°
         ha_sunrise = _hour_angle(-0.833)
         t_sunrise = solar_noon - ha_sunrise
 
-        # Dhuhr: solar noon + 2 min buffer
         t_dhuhr = solar_noon + 2.0 / 60.0
 
-        # Asr (Shafi'i: shadow = object length + noon shadow)
-        # altitude of sun at asr: arccot(1 + tan|lat - decl|)
         noon_alt = math.pi / 2 - abs(lat_rad - decl)
         noon_shadow = 1.0 / math.tan(noon_alt) if math.tan(noon_alt) != 0 else 0
         asr_alt = math.atan(1.0 / (1.0 + noon_shadow))
         ha_asr = _hour_angle(math.degrees(asr_alt))
         t_asr = solar_noon + ha_asr
 
-        # Maghrib: Sunset (-0.833°) + 2 min buffer
         t_sunset = solar_noon + ha_sunrise
         t_maghrib = t_sunset + 2.0 / 60.0
-
-        # Isha: 18° below horizon (-18)
         t_isha = solar_noon + ha_fajr
 
         def fmt_h(h_val: float) -> str:
@@ -492,12 +681,12 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
             return f"{hours:02d}:{mins:02d}"
 
         return {
-            "ފަތިސް": fmt_h(t_fajr),
-            "އިރުއަރާ": fmt_h(t_sunrise),
-            "މެންދުރު": fmt_h(t_dhuhr),
-            "ޢަޞުރު": fmt_h(t_asr),
-            "މަޣްރިބް": fmt_h(t_maghrib),
-            "ޢިޝާ": fmt_h(t_isha)
+            "ފަތިސް": fmt_h(t_fajr), "Fajr": fmt_h(t_fajr),
+            "އިރުއަރާ": fmt_h(t_sunrise), "Sunrise": fmt_h(t_sunrise),
+            "މެންދުރު": fmt_h(t_dhuhr), "Dhuhr": fmt_h(t_dhuhr),
+            "ޢަޞުރު": fmt_h(t_asr), "Asr": fmt_h(t_asr),
+            "މަޣްރިބް": fmt_h(t_maghrib), "Maghrib": fmt_h(t_maghrib),
+            "ޢިޝާ": fmt_h(t_isha), "Isha": fmt_h(t_isha)
         }
 
     def prayer_today(*args):
@@ -523,43 +712,94 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         times = _calc_prayer_times(lat, lon, now.year, now.month, now.day)
 
         cur_min = now.hour * 60 + now.minute
-        order = ["ފަތިސް", "މެންދުރު", "ޢަޞުރު", "މަޣްރިބް", "ޢިޝާ"]
+        order = [("ފަތިސް", "Fajr"), ("މެންދުރު", "Dhuhr"), ("ޢަޞުރު", "Asr"), ("މަޣްރިބް", "Maghrib"), ("ޢިޝާ", "Isha")]
 
-        next_prayer = None
+        next_dhi, next_eng = None, None
         rem_minutes = 0
 
-        for p in order:
-            t_str = times[p]
+        for p_dhi, p_eng in order:
+            t_str = times[p_dhi]
             parts = t_str.split(":")
             p_min = int(parts[0]) * 60 + int(parts[1])
             if p_min > cur_min:
-                next_prayer = p
+                next_dhi = p_dhi
+                next_eng = p_eng
                 rem_minutes = p_min - cur_min
                 break
 
-        if not next_prayer:
-            # Tomorrow's Fajr
+        if not next_dhi:
             tomorrow = datetime.fromtimestamp(time.time() + 86400)
             t_times = _calc_prayer_times(lat, lon, tomorrow.year, tomorrow.month, tomorrow.day)
             f_parts = t_times["ފަތިސް"].split(":")
             f_min = int(f_parts[0]) * 60 + int(f_parts[1])
             rem_minutes = (1440 - cur_min) + f_min
-            next_prayer = "ފަތިސް"
+            next_dhi = "ފަތިސް"
+            next_eng = "Fajr"
 
         return py_to_dhi({
-            "ނަމާދު": next_prayer,
-            "ވަގުތު": times.get(next_prayer, "05:00"),
-            "ބާކީ_މިނިޓް": rem_minutes
+            "ނަމާދު": next_dhi, "prayer": next_eng,
+            "ވަގުތު": times.get(next_dhi, "05:00"), "time": times.get(next_dhi, "05:00"),
+            "ބާކީ_މިނިޓް": rem_minutes, "remaining_minutes": rem_minutes
         })
 
+    def prayer_atolls(*args):
+        # Return unique Dhivehi atoll names
+        atoll_names = [k for k in ATOLL_COORDS.keys() if any('\u0780' <= c <= '\u07BF' for c in k)]
+        return py_to_dhi(atoll_names)
+
+    def _calc_hijri(year: int, month: int, day: int):
+        Y, M, D = year, month, day
+        if M <= 2:
+            Y -= 1
+            M += 12
+        A = Y // 100
+        B = 2 - A + (A // 4)
+        jdn = int(365.25 * (Y + 4716)) + int(30.6001 * (M + 1)) + D + B - 1524
+        l = jdn - 1948440 + 10632
+        n = int((l - 1) / 10631)
+        l = l - 10631 * n + 354
+        j = (int((10985 - l) / 5316)) * (int((50 * l) / 17719)) + (int(l / 5670)) * (int((43 * l) / 15238))
+        l = l - (int((30 - j) / 15)) * (int((17719 * j) / 50)) - (int(j / 16)) * (int((15238 * j) / 43)) + 29
+        hijri_month = int((24 * l) / 709)
+        hijri_day = l - int((709 * hijri_month) / 24)
+        hijri_year = 30 * n + j - 30
+        h_month_name = HIJRI_MONTHS[(hijri_month - 1) % 12]
+        return {
+            "އަހަރު": hijri_year, "year": hijri_year,
+            "މަސް": h_month_name, "month": h_month_name,
+            "މަސް_ނަންބަރު": hijri_month, "month_num": hijri_month,
+            "ދުވަސް": hijri_day, "day": hijri_day,
+            "ތާރީޚް": f"{hijri_day} {h_month_name} {hijri_year}",
+            "formatted": f"{hijri_day} {h_month_name} {hijri_year}"
+        }
+
+    def prayer_hijri(*args):
+        now = datetime.now()
+        y = int(args[0].value) if len(args) > 0 and hasattr(args[0], 'value') else now.year
+        m = int(args[1].value) if len(args) > 1 and hasattr(args[1], 'value') else now.month
+        d = int(args[2].value) if len(args) > 2 and hasattr(args[2], 'value') else now.day
+        res = _calc_hijri(y, m, d)
+        return py_to_dhi(res)
+
     prayer_module = {
+        # Dhivehi
         "މިއަދުގެ_ވަގުތު": obj_factory['builtin'](prayer_today),
         "ވަގުތު_ހޯދާ": obj_factory['builtin'](prayer_lookup),
         "ދެން_އޮތް_ނަމާދު": obj_factory['builtin'](prayer_next),
+        "ހުރިހާ_ރަށްތައް": obj_factory['builtin'](prayer_atolls),
+        "ހިޖުރީ_ތާރީޚް": obj_factory['builtin'](prayer_hijri),
+
+        # English
+        "today": obj_factory['builtin'](prayer_today),
+        "lookup": obj_factory['builtin'](prayer_lookup),
+        "next_prayer": obj_factory['builtin'](prayer_next),
+        "atolls": obj_factory['builtin'](prayer_atolls),
+        "hijri_date": obj_factory['builtin'](prayer_hijri),
+        "hijri": obj_factory['builtin'](prayer_hijri),
     }
 
     # =========================================================================
-    # 8. ތާނަ_ހިސާބު (Number-to-Words & Thaana Collation) [Option 2]
+    # 8. ތާނަ (Thaana & Dhivehi Language Module - "thaana")
     # =========================================================================
     ONES_DHIVEHI = [
         "", "އެއް", "ދެ", "ތިން", "ހަތަރު", "ފަސް", "ހަ", "ހަތް", "އަށް", "ނުވަ"
@@ -602,7 +842,6 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
             base = TENS[n // 10]
             if rem == 0:
                 return base
-            # In Dhivehi: e.g. 35 -> ފަންސަތިރީސް, 31 -> އެއްތިރީސް
             prefix = ONES_DHIVEHI[rem]
             return f"{prefix}{base}"
 
@@ -634,18 +873,16 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
 
     def num_to_dhivehi_fn(*args):
         if not args:
-            return obj_factory['error']("އަދަދު_ބަހަށް() އަށް އަދަދެއް ދޭންވާނެ")
+            return obj_factory['error']("އަދަދު_ބަހަށް() / to_words() އަށް އަދަދެއް ދޭންވާނެ")
         val = int(args[0].value) if hasattr(args[0], 'value') else int(args[0])
         return obj_factory['string'](_number_to_dhivehi(val))
 
     def thaana_collation_key(word: str):
-        # Strips fili and maps consonants to Thaana alphabet index
         key = []
         for ch in word:
             if ch in THAANA_ORDER_MAP:
                 key.append(THAANA_ORDER_MAP[ch])
             elif '\u0780' <= ch <= '\u07BF':
-                # Fili mark, assign secondary weight
                 key.append(100 + ord(ch))
             else:
                 key.append(200 + ord(ch))
@@ -653,10 +890,10 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
 
     def thaana_sort_fn(*args):
         if not args:
-            return obj_factory['error']("ތާނަ_ތަރުތީބު() އަށް ލިސްޓެއް ދޭންވާނެ")
+            return obj_factory['error']("ތާނަ_ތަރުތީބު() / sort() އަށް ލިސްޓެއް ދޭންވާނެ")
         raw_list = dhi_to_py(args[0])
         if not isinstance(raw_list, list):
-            return obj_factory['error']("ތާނަ_ތަރުތީބު() އަށް ލިސްޓެއް ދޭންވާނެ")
+            return obj_factory['error']("ތާނަ_ތަރުތީބު() / sort() އަށް ލިސްޓެއް ދޭންވާނެ")
 
         sorted_list = sorted(raw_list, key=lambda s: thaana_collation_key(str(s)))
         return py_to_dhi(sorted_list)
@@ -664,14 +901,241 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
     def thaana_alphabet_fn(*args):
         return py_to_dhi(THAANA_ALPHABET)
 
+    def thaana_is_thaana(*args):
+        if not args:
+            return obj_factory['boolean'](False)
+        text = args[0].inspect()
+        has_thaana = any('\u0780' <= ch <= '\u07BF' for ch in text)
+        return obj_factory['boolean'](has_thaana)
+
+    def thaana_strip_fili(*args):
+        if not args:
+            return obj_factory['string']("")
+        text = args[0].inspect()
+        stripped = "".join(ch for ch in text if not ('\u07A6' <= ch <= '\u07B0'))
+        return obj_factory['string'](stripped)
+
+    def thaana_currency_mvr(*args):
+        if not args:
+            return obj_factory['error']("ރުފިޔާ() / currency_mvr() އަށް އަދަދެއް ދޭންވާނެ")
+        val = float(args[0].value) if hasattr(args[0], 'value') else float(args[0])
+        symbol = args[1].inspect() if len(args) > 1 else "ރ."
+        return obj_factory['string'](f"{symbol} {val:,.2f}")
+
+    def thaana_to_latin(*args):
+        if not args:
+            return obj_factory['string']("")
+        text = args[0].inspect()
+        c_map = {
+            'ހ': 'h', 'ށ': 'sh', 'ނ': 'n', 'ރ': 'r', 'ބ': 'b',
+            'ޅ': 'lh', 'ކ': 'k', 'އ': '', 'ވ': 'v', 'މ': 'm',
+            'ފ': 'f', 'ދ': 'dh', 'ތ': 'th', 'ލ': 'l', 'ގ': 'g',
+            'ޏ': 'gn', 'ސ': 's', 'ޑ': 'd', 'ޒ': 'z', 'ޓ': 't',
+            'ޔ': 'y', 'ޕ': 'p', 'ޖ': 'j', 'ޗ': 'ch',
+            'ޘ': 'th', 'ޙ': 'h', 'ޚ': 'kh', 'ޛ': 'dh', 'ޜ': 'z',
+            'ޝ': 'sh', 'ޞ': 's', 'ޟ': 'd', 'ޠ': 't', 'ޡ': 'z',
+            'ޢ': '', 'ޣ': 'gh', 'ޤ': 'q', 'ޥ': 'w'
+        }
+        f_map = {
+            '\u07A6': 'a', '\u07A7': 'aa', '\u07A8': 'i', '\u07A9': 'ee',
+            '\u07AA': 'u', '\u07AB': 'oo', '\u07AC': 'e', '\u07AD': 'ey',
+            '\u07AE': 'o', '\u07AF': 'oa', '\u07B0': ''
+        }
+        res = []
+        i = 0
+        n = len(text)
+        while i < n:
+            ch = text[i]
+            if ch in c_map:
+                c = c_map[ch]
+                if i + 1 < n and text[i+1] in f_map:
+                    f = f_map[text[i+1]]
+                    if text[i+1] == '\u07B0' and ch == 'އ':
+                        if i + 2 < n and text[i+2] in c_map and c_map[text[i+2]]:
+                            c = c_map[text[i+2]][0]
+                        else:
+                            c = "'"
+                    res.append(c + f)
+                    i += 2
+                else:
+                    res.append(c)
+                    i += 1
+            elif ch in f_map:
+                res.append(f_map[ch])
+                i += 1
+            else:
+                res.append(ch)
+                i += 1
+        return obj_factory['string'](''.join(res))
+
     thaana_math_module = {
+        # Dhivehi
         "އަދަދު_ބަހަށް": obj_factory['builtin'](num_to_dhivehi_fn),
         "ތާނަ_ތަރުތީބު": obj_factory['builtin'](thaana_sort_fn),
         "ތާނަ_އަކުރުތައް": obj_factory['builtin'](thaana_alphabet_fn),
+        "ތާނަތޯ": obj_factory['builtin'](thaana_is_thaana),
+        "ފިލި_ފޮހޭ": obj_factory['builtin'](thaana_strip_fili),
+        "ރުފިޔާ": obj_factory['builtin'](thaana_currency_mvr),
+        "ލެޓިން_ބަދަލު": obj_factory['builtin'](thaana_to_latin),
+
+        # English
+        "number_to_words": obj_factory['builtin'](num_to_dhivehi_fn),
+        "to_words": obj_factory['builtin'](num_to_dhivehi_fn),
+        "sort": obj_factory['builtin'](thaana_sort_fn),
+        "alphabet": obj_factory['builtin'](thaana_alphabet_fn),
+        "is_thaana": obj_factory['builtin'](thaana_is_thaana),
+        "strip_fili": obj_factory['builtin'](thaana_strip_fili),
+        "currency_mvr": obj_factory['builtin'](thaana_currency_mvr),
+        "mvr": obj_factory['builtin'](thaana_currency_mvr),
+        "to_latin": obj_factory['builtin'](thaana_to_latin),
+        "latin": obj_factory['builtin'](thaana_to_latin),
     }
 
-    # Module registry
+    # =========================================================================
+    # 9. ކްރިޕްޓޯ (Cryptography & Security Module - "crypto") [NEW]
+    # =========================================================================
+    def crypto_sha256(*args):
+        if not args:
+            return obj_factory['error']("sha256() އަށް ލިޔުމެއް ދޭންވާނެ")
+        raw = args[0].inspect()
+        return obj_factory['string'](hashlib.sha256(raw.encode('utf-8')).hexdigest())
+
+    def crypto_sha512(*args):
+        if not args:
+            return obj_factory['error']("sha512() އަށް ލިޔުމެއް ދޭންވާނެ")
+        raw = args[0].inspect()
+        return obj_factory['string'](hashlib.sha512(raw.encode('utf-8')).hexdigest())
+
+    def crypto_md5(*args):
+        if not args:
+            return obj_factory['error']("md5() އަށް ލިޔުމެއް ދޭންވާނެ")
+        raw = args[0].inspect()
+        return obj_factory['string'](hashlib.md5(raw.encode('utf-8')).hexdigest())
+
+    def crypto_hmac_sha256(*args):
+        if len(args) < 2:
+            return obj_factory['error']("hmac() އަށް ތަޅަކާއި މެސެޖެއް ދޭންވާނެ")
+        key = args[0].inspect().encode('utf-8')
+        msg = args[1].inspect().encode('utf-8')
+        return obj_factory['string'](hmac.new(key, msg, hashlib.sha256).hexdigest())
+
+    def crypto_base64_encode(*args):
+        if not args:
+            return obj_factory['error']("base64_encode() އަށް ލިޔުމެއް ދޭންވާނެ")
+        raw = args[0].inspect().encode('utf-8')
+        return obj_factory['string'](base64.b64encode(raw).decode('ascii'))
+
+    def crypto_base64_decode(*args):
+        if not args:
+            return obj_factory['error']("base64_decode() އަށް ލިޔުމެއް ދޭންވާނެ")
+        raw = args[0].inspect().encode('ascii')
+        try:
+            return obj_factory['string'](base64.b64decode(raw).decode('utf-8', errors='replace'))
+        except Exception as e:
+            return obj_factory['error'](f"base64 ޑީކޯޑް ކުރުމުގައި މައްސަލައެއް: {e}")
+
+    def crypto_random_token(*args):
+        length = int(args[0].value) if args and hasattr(args[0], 'value') else 16
+        return obj_factory['string'](secrets.token_hex(length))
+
+    crypto_module = {
+        # Dhivehi
+        "އެސްއެޗްއޭ256": obj_factory['builtin'](crypto_sha256),
+        "އެސްއެޗްއޭ512": obj_factory['builtin'](crypto_sha512),
+        "އެމްޑީ5": obj_factory['builtin'](crypto_md5),
+        "އެޗްމެކް": obj_factory['builtin'](crypto_hmac_sha256),
+        "ބޭސް64_އެންކޯޑް": obj_factory['builtin'](crypto_base64_encode),
+        "ބޭސް64_ޑީކޯޑް": obj_factory['builtin'](crypto_base64_decode),
+        "ރެންޑަމް_ޓޯކަން": obj_factory['builtin'](crypto_random_token),
+
+        # English
+        "sha256": obj_factory['builtin'](crypto_sha256),
+        "sha512": obj_factory['builtin'](crypto_sha512),
+        "md5": obj_factory['builtin'](crypto_md5),
+        "hmac_sha256": obj_factory['builtin'](crypto_hmac_sha256),
+        "hmac": obj_factory['builtin'](crypto_hmac_sha256),
+        "base64_encode": obj_factory['builtin'](crypto_base64_encode),
+        "b64encode": obj_factory['builtin'](crypto_base64_encode),
+        "base64_decode": obj_factory['builtin'](crypto_base64_decode),
+        "b64decode": obj_factory['builtin'](crypto_base64_decode),
+        "random_token": obj_factory['builtin'](crypto_random_token),
+        "token": obj_factory['builtin'](crypto_random_token),
+    }
+
+    # =========================================================================
+    # 10. ރެގެކްސް (Regular Expressions Module - "regex") [NEW]
+    # =========================================================================
+    def regex_match(*args):
+        if len(args) < 2:
+            return obj_factory['error']("match() އަށް ޕެޓާނަކާއި ލިޔުމެއް ދޭންވާނެ")
+        pat = args[0].inspect()
+        text = args[1].inspect()
+        try:
+            m = re.match(pat, text)
+            return obj_factory['boolean'](bool(m))
+        except Exception as e:
+            return obj_factory['error'](f"ރެގެކްސް މައްސަލައެއް: {e}")
+
+    def regex_search(*args):
+        if len(args) < 2:
+            return obj_factory['error']("search() އަށް ޕެޓާނަކާއި ލިޔުމެއް ދޭންވާނެ")
+        pat = args[0].inspect()
+        text = args[1].inspect()
+        try:
+            m = re.search(pat, text)
+            if not m:
+                return obj_factory['null']()
+            return py_to_dhi({
+                "found": True,
+                "text": m.group(0),
+                "start": m.start(),
+                "end": m.end()
+            })
+        except Exception as e:
+            return obj_factory['error'](f"ރެގެކްސް މައްސަލައެއް: {e}")
+
+    def regex_replace(*args):
+        if len(args) < 3:
+            return obj_factory['error']("replace() އަށް ޕެޓާން، ބަދަލުކުރާ_އެއްޗެއް، އަދި ލިޔުން ދޭންވާނެ")
+        pat = args[0].inspect()
+        repl = args[1].inspect()
+        text = args[2].inspect()
+        try:
+            res = re.sub(pat, repl, text)
+            return obj_factory['string'](res)
+        except Exception as e:
+            return obj_factory['error'](f"ރެގެކްސް މައްސަލައެއް: {e}")
+
+    def regex_split(*args):
+        if len(args) < 2:
+            return obj_factory['error']("split() އަށް ޕެޓާނަކާއި ލިޔުމެއް ދޭންވާނެ")
+        pat = args[0].inspect()
+        text = args[1].inspect()
+        try:
+            parts = re.split(pat, text)
+            return obj_factory['list']([obj_factory['string'](p) for p in parts])
+        except Exception as e:
+            return obj_factory['error'](f"ރެގެކްސް މައްސަލައެއް: {e}")
+
+    regex_module = {
+        # Dhivehi
+        "ދިމާވޭތޯ": obj_factory['builtin'](regex_match),
+        "ހޯދާ": obj_factory['builtin'](regex_search),
+        "ބަދަލުކުރޭ": obj_factory['builtin'](regex_replace),
+        "ވަކިކުރޭ": obj_factory['builtin'](regex_split),
+
+        # English
+        "match": obj_factory['builtin'](regex_match),
+        "search": obj_factory['builtin'](regex_search),
+        "replace": obj_factory['builtin'](regex_replace),
+        "split": obj_factory['builtin'](regex_split),
+    }
+
+    # =========================================================================
+    # Module Registry (Dual Dhivehi and English Names)
+    # =========================================================================
     return {
+        # Dhivehi Module Identifiers
         "ހިސާބު": math_module,
         "ފައިލް": file_module,
         "ވަގުތު": time_module,
@@ -680,4 +1144,22 @@ def get_stdlib_modules(obj_factory) -> Dict[str, Dict[str, Any]]:
         "ނަކަތް": nakaiy_module,
         "ނަމާދު": prayer_module,
         "ތާނަ_ހިސާބު": thaana_math_module,
+        "ތާނަ": thaana_math_module,
+        "ކްރިޕްޓޯ": crypto_module,
+        "ރެގެކްސް": regex_module,
+
+        # English Module Identifiers
+        "math": math_module,
+        "file": file_module,
+        "fs": file_module,
+        "time": time_module,
+        "sys": system_module,
+        "os": system_module,
+        "net": network_module,
+        "http": network_module,
+        "nakaiy": nakaiy_module,
+        "prayer": prayer_module,
+        "thaana": thaana_math_module,
+        "crypto": crypto_module,
+        "regex": regex_module,
     }

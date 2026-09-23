@@ -172,11 +172,12 @@ class Lexer:
                     chars.append('\t')
                 elif self.ch == '"':
                     chars.append('"')
-                elif self.ch == '\\':
-                    chars.append('\\')
+                elif self.ch == 'r':
+                    chars.append('\r')
                 elif self.ch in ('{', '}'):
                     chars.append('\\' + self.ch)
                 elif self.ch is not None:
+                    chars.append('\\')
                     chars.append(self.ch)
             else:
                 if self.ch == '\n':
