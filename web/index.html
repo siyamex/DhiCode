@@ -83,6 +83,9 @@
       </ul>
 
       <div class="nav-actions">
+        <button id="btn-theme" class="btn btn-secondary btn-icon" title="ތީމް ބަދަލުކުރޭ (Light / Dark)">
+          <span id="theme-icon">🌙</span>
+        </button>
         <button id="btn-dir" class="btn btn-secondary btn-icon" title="އަކުރުގެ މިސްރާބު ބަދަލުކުރޭ">
           <span id="dir-icon">🔀</span> RTL
         </button>
@@ -166,11 +169,17 @@
           <div class="editor-box">
             <div class="editor-bar">
               <span>main.dhi</span>
-              <button id="btn-copy-code" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.75rem;">
-                ކޮޕީ
-              </button>
+              <div class="editor-bar-actions">
+                <span class="editor-syntax-badge">🎨 ކުލަ ކޯޑިންގ</span>
+                <button id="btn-copy-code" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.75rem;">
+                  ކޮޕީ
+                </button>
+              </div>
             </div>
-            <textarea id="code-editor" spellcheck="false" placeholder="މިތަނުގައި ދިވެހި ކޯޑު ލިޔުއްވާ..."></textarea>
+            <div class="editor-container">
+              <pre id="code-highlight" aria-hidden="true"><code id="code-highlight-content"></code></pre>
+              <textarea id="code-editor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="މިތަނުގައި ދިވެހި ކޯޑު ލިޔުއްވާ..."></textarea>
+            </div>
           </div>
 
           <!-- Terminal Console -->

@@ -1,25 +1,187 @@
-// web/app.js - DhiCode Live Web Playground Controller
+// web/app.js - DhiCode Live Web Playground Controller with Real-Time Syntax Highlighting
 let pyodide = null;
 let isReady = false;
 
 // DOM Elements
 const editor = document.getElementById("code-editor");
+const highlight = document.getElementById("code-highlight");
+const highlightContent = document.getElementById("code-highlight-content");
 const terminal = document.getElementById("terminal-output");
 const statusIndicator = document.getElementById("runtime-status");
 const btnRun = document.getElementById("btn-run");
 const btnClear = document.getElementById("btn-clear");
 const btnDir = document.getElementById("btn-dir");
+const btnTheme = document.getElementById("btn-theme");
+const themeIcon = document.getElementById("theme-icon");
 const btnCopyCmd = document.getElementById("btn-copy-cmd");
 const btnCopyCode = document.getElementById("btn-copy-code");
 const execTimeBadge = document.getElementById("exec-time");
 const exampleTabs = document.querySelectorAll("#example-tabs .ide-tab");
 
+// =============================================================================
+// 1. Theme Management (Light Theme Default + Dark Mode Switcher)
+// =============================================================================
+function initTheme() {
+  const savedTheme = localStorage.getItem("dhicode-theme") || "light";
+  applyTheme(savedTheme);
+}
+
+function applyTheme(theme) {
+  if (theme === "dark") {
+    document.documentElement.setAttribute("data-theme", "dark");
+    if (themeIcon) themeIcon.textContent = "☀️";
+    if (btnTheme) btnTheme.setAttribute("title", "އަލި ތީމަށް ބަދަލުކުރޭ (Switch to Light)");
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+    if (themeIcon) themeIcon.textContent = "🌙";
+    if (btnTheme) btnTheme.setAttribute("title", "އަނދިރި ތީމަށް ބަދަލުކުރޭ (Switch to Dark)");
+  }
+  localStorage.setItem("dhicode-theme", theme);
+}
+
+if (btnTheme) {
+  btnTheme.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    const nextTheme = currentTheme === "dark" ? "light" : "dark";
+    applyTheme(nextTheme);
+  });
+}
+
+// =============================================================================
+// 2. Syntax Highlighting Engine for DhiCode (Thaana & English)
+// =============================================================================
+const DHI_KEYWORDS = new Set([
+  // Core control & declaration keywords
+  "ކަނޑައަޅާ", "ބަހައްޓާ", "ވަޒީފާ", "ފަންކް", "ފޮނުވާ", "ދައްކާ", "ލިޔޭ",
+  "ނަމަ", "ނޫންނަމަ", "ހިނދު", "ނިމުނީ", "ކޮންމެ", "ތެރޭގައި", "ގެނޭ",
+  "މަސައްކަތްކުރޭ", "ކުށެއް_ފެނިއްޖެނަމަ", "އުކާލާ", "ހުއްޓާ", "ކުރިއަށް"
+]);
+
+const DHI_BOOLEANS = new Set([
+  "އާން", "ނޫން", "ބާޠިލް", "ހުސް"
+]);
+
+const DHI_BUILTINS = new Set([
+  // Standard library functions & built-in tags
+  "ދިގުމިން", "ބާވަތް", "އަޅާ", "ނަގާ", "ތަޅުދަނޑިތައް", "އަގުތައް", "އަހާ",
+  "ޖަޒުރު", "ބާރު", "ކައިރި", "ތިރި", "މަތި", "ޕައި", "އިއްތިފާޤު",
+  "ވަކިކުރޭ", "ގުޅުވާ", "ބަދަލު", "ތެދު_އަދަދު", "ހުސްޖާގަ_ފޮހޭ", "ކުޑަކުރޭ", "ބޮޑުކުރޭ"
+]);
+
+// Tokenizer regular expression
+// 1: Comments (single or multiline)
+// 2: Strings (double or single quoted)
+// 3: Numbers (integers or floats)
+// 4: Thaana & ASCII Identifiers (variables / keywords / builtins)
+// 5: Multi & single char operators
+// 6: Delimiters / Punctuation
+const TOKEN_REGEX = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+(?:\.\d+)?\b)|([\u0780-\u07BFa-zA-Z_][\u0780-\u07BFa-zA-Z0-9_]*)|(==|!=|<=|>=|&&|\|\||[=+\-*/%!<>&])|([()[\]{},;:])/gu;
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function highlightDhiCode(code) {
+  if (!code) return "";
+  let lastIndex = 0;
+  let out = "";
+  let match;
+  TOKEN_REGEX.lastIndex = 0;
+
+  while ((match = TOKEN_REGEX.exec(code)) !== null) {
+    const index = match.index;
+    if (index > lastIndex) {
+      out += escapeHtml(code.slice(lastIndex, index));
+    }
+
+    const [full, comment, str, num, ident, op, punct] = match;
+
+    if (comment) {
+      out += `<span class="tok-comment">${escapeHtml(comment)}</span>`;
+    } else if (str) {
+      out += `<span class="tok-string">${escapeHtml(str)}</span>`;
+    } else if (num) {
+      out += `<span class="tok-number">${escapeHtml(num)}</span>`;
+    } else if (ident) {
+      if (DHI_KEYWORDS.has(ident)) {
+        out += `<span class="tok-keyword">${escapeHtml(ident)}</span>`;
+      } else if (DHI_BOOLEANS.has(ident)) {
+        out += `<span class="tok-boolean">${escapeHtml(ident)}</span>`;
+      } else if (DHI_BUILTINS.has(ident)) {
+        out += `<span class="tok-builtin">${escapeHtml(ident)}</span>`;
+      } else {
+        out += `<span class="tok-ident">${escapeHtml(ident)}</span>`;
+      }
+    } else if (op) {
+      out += `<span class="tok-operator">${escapeHtml(op)}</span>`;
+    } else if (punct) {
+      out += `<span class="tok-punct">${escapeHtml(punct)}</span>`;
+    }
+
+    lastIndex = TOKEN_REGEX.lastIndex;
+  }
+
+  if (lastIndex < code.length) {
+    out += escapeHtml(code.slice(lastIndex));
+  }
+
+  return out;
+}
+
+// Update live highlighter overlay
+function updateHighlight() {
+  if (!editor || !highlightContent) return;
+  const code = editor.value;
+  highlightContent.innerHTML = highlightDhiCode(code) + (code.endsWith("\n") ? " " : "");
+  syncScroll();
+}
+
+// Sync scrolling between editor textarea and highlight pre
+function syncScroll() {
+  if (!editor || !highlight) return;
+  highlight.scrollTop = editor.scrollTop;
+  highlight.scrollLeft = editor.scrollLeft;
+}
+
+// Wire editor events
+if (editor) {
+  editor.addEventListener("input", updateHighlight);
+  editor.addEventListener("scroll", syncScroll);
+
+  // Tab key indentation (inserts 4 spaces instead of leaving focus)
+  editor.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      editor.value = editor.value.substring(0, start) + "    " + editor.value.substring(end);
+      editor.selectionStart = editor.selectionEnd = start + 4;
+      updateHighlight();
+    }
+  });
+}
+
+// Highlight all static <code> elements on page (e.g. in keywords table)
+function highlightStaticCodeSnippets() {
+  const codeBlocks = document.querySelectorAll(".keywords-table td code, .keywords-table-card code");
+  codeBlocks.forEach((block) => {
+    const raw = block.textContent;
+    block.innerHTML = highlightDhiCode(raw);
+  });
+}
+
 // Set initial example
 if (typeof EXAMPLES !== "undefined" && EXAMPLES.hello) {
   editor.value = EXAMPLES.hello.code;
+  updateHighlight();
 }
 
-// Append line to web terminal
+// =============================================================================
+// 3. Web Terminal Logging & Management
+// =============================================================================
 function appendTerminal(text, type = "normal") {
   const line = document.createElement("div");
   line.className = `terminal-line terminal-${type}`;
@@ -43,8 +205,10 @@ if (btnDir) {
     isRtl = !isRtl;
     document.documentElement.dir = isRtl ? "rtl" : "ltr";
     editor.dir = isRtl ? "rtl" : "ltr";
+    if (highlight) highlight.dir = isRtl ? "rtl" : "ltr";
     terminal.dir = isRtl ? "rtl" : "ltr";
     btnDir.innerHTML = isRtl ? `<span id="dir-icon">🔀</span> RTL` : `<span id="dir-icon">🔀</span> LTR`;
+    syncScroll();
   });
 }
 
@@ -57,6 +221,7 @@ exampleTabs.forEach((tab) => {
     const key = tab.getAttribute("data-example");
     if (typeof EXAMPLES !== "undefined" && EXAMPLES[key]) {
       editor.value = EXAMPLES[key].code;
+      updateHighlight();
     }
   });
 });
@@ -82,7 +247,9 @@ if (btnCopyCode) {
   });
 }
 
-// Initialize Pyodide WebAssembly
+// =============================================================================
+// 4. Pyodide WebAssembly Engine
+// =============================================================================
 async function initPyodide() {
   try {
     statusIndicator.textContent = "Wasm ލޯޑުވަނީ...";
@@ -224,5 +391,10 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// Start initialization
+// =============================================================================
+// 5. Initial Bootstrapping
+// =============================================================================
+initTheme();
+highlightStaticCodeSnippets();
+updateHighlight();
 initPyodide();
