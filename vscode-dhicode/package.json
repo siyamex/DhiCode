@@ -1,0 +1,54 @@
+{
+  "name": "dhicode",
+  "displayName": "DhiCode (ދިވެހި ކޯޑު)",
+  "description": "Language support and syntax highlighting for DhiCode - Dhivehi programming language",
+  "version": "0.1.0",
+  "publisher": "dhicode",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dhicode/dhicode"
+  },
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "dhicode",
+    "dhivehi",
+    "thaana",
+    "maldives",
+    "programming language"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "dhicode",
+        "aliases": [
+          "DhiCode",
+          "dhicode",
+          "Dhivehi"
+        ],
+        "extensions": [
+          ".dhi"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "dhicode",
+        "scopeName": "source.dhicode",
+        "path": "./syntaxes/dhicode.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "dhicode",
+        "path": "./snippets/dhicode.json"
+      }
+    ]
+  }
+}

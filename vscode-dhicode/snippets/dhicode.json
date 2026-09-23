@@ -1,0 +1,84 @@
+{
+  "Function (vazeefaa)": {
+    "prefix": "vazeefaa",
+    "body": [
+      "ވަޒީފާ ${1:ނަން}(${2:ޕެރަމީޓަރ})",
+      "\t$0",
+      "ނިމުނީ"
+    ],
+    "description": "Define a function in DhiCode (ވަޒީފާ)"
+  },
+  "Function (fank)": {
+    "prefix": "fank",
+    "body": [
+      "ފަންކް ${1:މައި}() {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Define a C++ style function in DhiCode (ފަންކް)"
+  },
+  "Variable Assignment (kanda'alhaa)": {
+    "prefix": "kanda",
+    "body": [
+      "ކަނޑައަޅާ ${1:ނަން} = ${2:އަގު}"
+    ],
+    "description": "Declare a variable with ކަނޑައަޅާ"
+  },
+  "Variable Assignment (bahattaa)": {
+    "prefix": "bahattaa",
+    "body": [
+      "ބަހައްޓާ ${1:ނަން} = ${2:އަގު}"
+    ],
+    "description": "Declare a variable with ބަހައްޓާ"
+  },
+  "If Statement (nama)": {
+    "prefix": "nama",
+    "body": [
+      "ނަމަ ${1:ޝަރުޠު}",
+      "\t$0",
+      "ނިމުނީ"
+    ],
+    "description": "If conditional block (ނަމަ)"
+  },
+  "If-Else Statement (nama-noonnama)": {
+    "prefix": "namanoon",
+    "body": [
+      "ނަމަ ${1:ޝަރުޠު}",
+      "\t$2",
+      "ނޫންނަމަ",
+      "\t$0",
+      "ނިމުނީ"
+    ],
+    "description": "If-Else conditional block (ނަމަ ... ނޫންނަމަ)"
+  },
+  "While Loop (hindhu)": {
+    "prefix": "hindhu",
+    "body": [
+      "ހިނދު ${1:ޝަރުޠު}",
+      "\t$0",
+      "ނިމުނީ"
+    ],
+    "description": "While loop block (ހިނދު)"
+  },
+  "Print Statement (dhakkaa)": {
+    "prefix": "dhakkaa",
+    "body": [
+      "ދައްކާ ${1:އަގު}"
+    ],
+    "description": "Output / Print statement (ދައްކާ)"
+  },
+  "Write Statement (liye)": {
+    "prefix": "liye",
+    "body": [
+      "ލިޔޭ ${1:އަގު}"
+    ],
+    "description": "Write / Print statement (ލިޔޭ)"
+  },
+  "Return Statement (fonuvaa)": {
+    "prefix": "fonuvaa",
+    "body": [
+      "ފޮނުވާ ${1:ނަތީޖާ}"
+    ],
+    "description": "Return statement (ފޮނުވާ)"
+  }
+}
