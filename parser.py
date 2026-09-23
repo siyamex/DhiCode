@@ -6,9 +6,10 @@ from lexer import Lexer, Token
 from ast_nodes import (
     Program, Statement, Expression, LetStatement, ReturnStatement,
     PrintStatement, ExpressionStatement, BlockStatement, IfStatement,
-    WhileStatement, FunctionStatement, Identifier, NumberLiteral,
-    StringLiteral, BooleanLiteral, PrefixExpression, InfixExpression,
-    CallExpression
+    WhileStatement, ForInStatement, FunctionStatement, ImportStatement,
+    TryCatchStatement, ThrowStatement, Identifier, NumberLiteral,
+    StringLiteral, BooleanLiteral, ListLiteral, DictLiteral,
+    IndexExpression, PrefixExpression, InfixExpression, CallExpression
 )
 
 class Precedence(IntEnum):
@@ -20,6 +21,7 @@ class Precedence(IntEnum):
     PRODUCT = 6      # *, /, %
     PREFIX = 7       # -X, !X
     CALL = 8         # func(X)
+    INDEX = 9        # array[index]
 
 PRECEDENCES: Dict[str, Precedence] = {
     tt.TT_AND: Precedence.LOGICAL,
@@ -36,6 +38,7 @@ PRECEDENCES: Dict[str, Precedence] = {
     tt.TT_SLASH: Precedence.PRODUCT,
     tt.TT_MODULO: Precedence.PRODUCT,
     tt.TT_LPAREN: Precedence.CALL,
+    tt.TT_LBRACKET: Precedence.INDEX,
 }
 
 class Parser:
@@ -56,6 +59,8 @@ class Parser:
         self._register_prefix(tt.TT_BANG, self._parse_prefix_expression)
         self._register_prefix(tt.TT_MINUS, self._parse_prefix_expression)
         self._register_prefix(tt.TT_LPAREN, self._parse_grouped_expression)
+        self._register_prefix(tt.TT_LBRACKET, self._parse_list_literal)
+        self._register_prefix(tt.TT_LBRACE, self._parse_dict_literal)
 
         self._register_infix(tt.TT_PLUS, self._parse_infix_expression)
         self._register_infix(tt.TT_MINUS, self._parse_infix_expression)
@@ -71,6 +76,7 @@ class Parser:
         self._register_infix(tt.TT_AND, self._parse_infix_expression)
         self._register_infix(tt.TT_OR, self._parse_infix_expression)
         self._register_infix(tt.TT_LPAREN, self._parse_call_expression)
+        self._register_infix(tt.TT_LBRACKET, self._parse_index_expression)
 
         # Prime tokens
         self.next_token()
@@ -129,8 +135,16 @@ class Parser:
             return self.parse_if_statement()
         elif self.cur_token_is(tt.TT_WHILE):
             return self.parse_while_statement()
+        elif self.cur_token_is(tt.TT_FOR):
+            return self.parse_for_in_statement()
         elif self.cur_token_is(tt.TT_FUNCTION):
             return self.parse_function_statement()
+        elif self.cur_token_is(tt.TT_IMPORT):
+            return self.parse_import_statement()
+        elif self.cur_token_is(tt.TT_TRY):
+            return self.parse_try_catch_statement()
+        elif self.cur_token_is(tt.TT_THROW):
+            return self.parse_throw_statement()
         elif self.cur_token_is(tt.TT_LBRACE):
             return self.parse_braced_block_statement()
         elif self.cur_token_is(tt.TT_SEMICOLON):
@@ -218,24 +232,23 @@ class Parser:
         if condition is None:
             return None
 
-        # Check if block uses '{' or keyword 'ނިމުނީ'
         if self.peek_token_is(tt.TT_LBRACE):
             self.next_token()
             consequence = self.parse_braced_block_statement()
             alternative = None
             if self.peek_token_is(tt.TT_ELSE):
-                self.next_token() # consume 'ނޫންނަމަ'
+                self.next_token()
                 if self.peek_token_is(tt.TT_LBRACE):
                     self.next_token()
                     alternative = self.parse_braced_block_statement()
             return IfStatement(token, condition, consequence, alternative)
         else:
-            self.next_token() # advance into block
+            self.next_token()
             consequence = self.parse_block_statement(stop_tokens=(tt.TT_END, tt.TT_ELSE, tt.TT_EOF))
             alternative = None
 
             if self.cur_token_is(tt.TT_ELSE):
-                self.next_token() # consume 'ނޫންނަމަ'
+                self.next_token()
                 alternative = self.parse_block_statement(stop_tokens=(tt.TT_END, tt.TT_EOF))
 
             return IfStatement(token, condition, consequence, alternative)
@@ -252,10 +265,33 @@ class Parser:
             self.next_token()
             body = self.parse_braced_block_statement()
         else:
-            self.next_token() # advance into block
+            self.next_token()
             body = self.parse_block_statement(stop_tokens=(tt.TT_END, tt.TT_EOF))
 
         return WhileStatement(token, condition, body)
+
+    def parse_for_in_statement(self) -> Optional[ForInStatement]:
+        token = self.cur_token
+        if not self.expect_peek(tt.TT_IDENTIFIER):
+            return None
+
+        item = Identifier(self.cur_token, self.cur_token.literal)
+        if not self.expect_peek(tt.TT_IN):
+            return None
+
+        self.next_token()
+        iterable = self.parse_expression(Precedence.LOWEST)
+        if iterable is None:
+            return None
+
+        if self.peek_token_is(tt.TT_LBRACE):
+            self.next_token()
+            body = self.parse_braced_block_statement()
+        else:
+            self.next_token()
+            body = self.parse_block_statement(stop_tokens=(tt.TT_END, tt.TT_EOF))
+
+        return ForInStatement(token, item, iterable, body)
 
     def parse_function_statement(self) -> Optional[FunctionStatement]:
         token = self.cur_token
@@ -297,6 +333,63 @@ class Parser:
 
         return identifiers
 
+    def parse_import_statement(self) -> Optional[ImportStatement]:
+        token = self.cur_token
+        if not self.expect_peek(tt.TT_STRING):
+            return None
+
+        path = self.cur_token.literal
+        if self.peek_token_is(tt.TT_SEMICOLON):
+            self.next_token()
+
+        return ImportStatement(token, path)
+
+    def parse_try_catch_statement(self) -> Optional[TryCatchStatement]:
+        token = self.cur_token
+
+        if self.peek_token_is(tt.TT_LBRACE):
+            self.next_token()
+            try_block = self.parse_braced_block_statement()
+            if not self.expect_peek(tt.TT_CATCH):
+                return None
+            error_var = None
+            if self.peek_token_is(tt.TT_IDENTIFIER):
+                self.next_token()
+                error_var = Identifier(self.cur_token, self.cur_token.literal)
+            if not self.expect_peek(tt.TT_LBRACE):
+                return None
+            catch_block = self.parse_braced_block_statement()
+            return TryCatchStatement(token, try_block, error_var, catch_block)
+        else:
+            self.next_token()
+            try_block = self.parse_block_statement(stop_tokens=(tt.TT_CATCH, tt.TT_END, tt.TT_EOF))
+            if not self.cur_token_is(tt.TT_CATCH):
+                self.errors.append(f"Line {self.cur_token.line}: Expected 'ކުށެއް_ފެނިއްޖެނަމަ' after 'މަސައްކަތްކުރޭ'")
+                return None
+
+            error_var = None
+            if self.peek_token_is(tt.TT_IDENTIFIER):
+                self.next_token()
+                error_var = Identifier(self.cur_token, self.cur_token.literal)
+
+            self.next_token()
+            catch_block = self.parse_block_statement(stop_tokens=(tt.TT_END, tt.TT_EOF))
+
+            return TryCatchStatement(token, try_block, error_var, catch_block)
+
+    def parse_throw_statement(self) -> Optional[ThrowStatement]:
+        token = self.cur_token
+        self.next_token()
+
+        expr = self.parse_expression(Precedence.LOWEST)
+        if expr is None:
+            return None
+
+        if self.peek_token_is(tt.TT_SEMICOLON):
+            self.next_token()
+
+        return ThrowStatement(token, expr)
+
     def parse_expression(self, precedence: Precedence) -> Optional[Expression]:
         prefix = self.prefix_parse_fns.get(self.cur_token.type)
         if prefix is None:
@@ -334,6 +427,65 @@ class Parser:
 
     def _parse_boolean_literal(self) -> Expression:
         return BooleanLiteral(self.cur_token, self.cur_token_is(tt.TT_TRUE))
+
+    def _parse_list_literal(self) -> Optional[Expression]:
+        token = self.cur_token
+        elements: List[Expression] = []
+
+        if self.peek_token_is(tt.TT_RBRACKET):
+            self.next_token()
+            return ListLiteral(token, elements)
+
+        self.next_token()
+        exp = self.parse_expression(Precedence.LOWEST)
+        if exp is not None:
+            elements.append(exp)
+
+        while self.peek_token_is(tt.TT_COMMA):
+            self.next_token()
+            self.next_token()
+            exp = self.parse_expression(Precedence.LOWEST)
+            if exp is not None:
+                elements.append(exp)
+
+        if not self.expect_peek(tt.TT_RBRACKET):
+            return None
+
+        return ListLiteral(token, elements)
+
+    def _parse_dict_literal(self) -> Optional[Expression]:
+        token = self.cur_token
+        pairs: Dict[Expression, Expression] = {}
+
+        if self.peek_token_is(tt.TT_RBRACE):
+            self.next_token()
+            return DictLiteral(token, pairs)
+
+        while not self.peek_token_is(tt.TT_RBRACE) and not self.peek_token_is(tt.TT_EOF):
+            self.next_token()
+            key = self.parse_expression(Precedence.LOWEST)
+            if not self.expect_peek(tt.TT_COLON):
+                return None
+            self.next_token()
+            val = self.parse_expression(Precedence.LOWEST)
+            pairs[key] = val
+
+            if not self.peek_token_is(tt.TT_RBRACE):
+                if not self.expect_peek(tt.TT_COMMA):
+                    return None
+
+        if not self.expect_peek(tt.TT_RBRACE):
+            return None
+
+        return DictLiteral(token, pairs)
+
+    def _parse_index_expression(self, left: Expression) -> Optional[Expression]:
+        token = self.cur_token
+        self.next_token()
+        index = self.parse_expression(Precedence.LOWEST)
+        if not self.expect_peek(tt.TT_RBRACKET):
+            return None
+        return IndexExpression(token, left, index)
 
     def _parse_prefix_expression(self) -> Expression:
         token = self.cur_token

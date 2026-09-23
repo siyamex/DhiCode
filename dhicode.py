@@ -21,7 +21,26 @@ from parser import Parser
 from evaluator import Evaluator, Environment, DhicodeError, DhicodeFunction, NULL_OBJ
 from ast_nodes import CallExpression, Identifier
 
-def run_source(source: str, env: Environment = None, verbose: bool = False) -> int:
+def format_diagnostic(source: str, filename: str, error: DhicodeError) -> str:
+    lines = source.splitlines()
+    res = [
+        "==================== [ކުށުގެ ތަފްޞީލް / Error Diagnostic] ====================",
+        f"ފައިލް: {filename}" + (f" | ލައިން: {error.line} | ކޮލަމް: {error.column}" if error.line > 0 else "")
+    ]
+
+    if 1 <= error.line <= len(lines):
+        err_line = lines[error.line - 1]
+        res.append("")
+        res.append(f"  {error.line:>4} | {err_line}")
+        col_pad = " " * max(0, error.column - 1) if error.column > 0 else ""
+        res.append(f"       | {col_pad}^^^")
+        res.append("")
+
+    res.append(f"ކުށް: {error.message}")
+    res.append("========================================================================")
+    return "\n".join(res)
+
+def run_source(source: str, filename: str = "<stdin>", env: Environment = None, base_path: str = ".") -> int:
     if env is None:
         env = Environment()
 
@@ -35,11 +54,11 @@ def run_source(source: str, env: Environment = None, verbose: bool = False) -> i
             print(f"  {err}", file=sys.stderr)
         return 1
 
-    evaluator = Evaluator()
+    evaluator = Evaluator(base_path=base_path)
     result = evaluator.eval(program, env)
 
     if isinstance(result, DhicodeError):
-        print(f"\n{result.inspect()}", file=sys.stderr)
+        print(format_diagnostic(source, filename, result), file=sys.stderr)
         return 1
 
     # If an entry function 'މައި' (main) was defined, execute it
@@ -47,12 +66,12 @@ def run_source(source: str, env: Environment = None, verbose: bool = False) -> i
     if isinstance(main_fn, DhicodeFunction):
         main_res = evaluator.eval(CallExpression(None, Identifier(None, "މައި"), []), env)
         if isinstance(main_res, DhicodeError):
-            print(f"\n{main_res.inspect()}", file=sys.stderr)
+            print(format_diagnostic(source, filename, main_res), file=sys.stderr)
             return 1
 
     return 0
 
-def run_file(filepath: str, verbose: bool = False) -> int:
+def run_file(filepath: str) -> int:
     if not os.path.exists(filepath):
         print(f"Error: File not found: '{filepath}'", file=sys.stderr)
         return 1
@@ -64,16 +83,17 @@ def run_file(filepath: str, verbose: bool = False) -> int:
         print(f"Error reading file '{filepath}': {e}", file=sys.stderr)
         return 1
 
-    return run_source(source, verbose=verbose)
+    base_dir = os.path.dirname(os.path.abspath(filepath))
+    return run_source(source, filename=os.path.basename(filepath), base_path=base_dir)
 
 def start_repl():
     print("========================================")
-    print(" DhiCode (ދިވެހި ކޯޑު) REPL v0.2.0")
+    print(" DhiCode (ދިވެހި ކޯޑު) REPL v0.3.0")
     print(" Type Dhivehi code or 'exit' / 'ހުއްޓާ' to quit.")
     print("========================================")
 
     env = Environment()
-    evaluator = Evaluator()
+    evaluator = Evaluator(base_path=".")
 
     while True:
         try:
@@ -99,7 +119,9 @@ def start_repl():
             continue
 
         result = evaluator.eval(program, env)
-        if result and result is not NULL_OBJ:
+        if isinstance(result, DhicodeError):
+            print(format_diagnostic(line, "<repl>", result), file=sys.stderr)
+        elif result and result is not NULL_OBJ:
             print(result.inspect())
 
 def main():
@@ -123,7 +145,6 @@ def main():
             sys.exit(1)
         sys.exit(run_file(sys.argv[2]))
     else:
-        # Treat argument directly as file if it ends with .dhi or exists
         if os.path.exists(cmd):
             sys.exit(run_file(cmd))
         else:

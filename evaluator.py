@@ -1,11 +1,15 @@
 # evaluator.py
+import os
 from typing import Dict, Any, Optional, List
 from ast_nodes import (
     Node, Program, BlockStatement, LetStatement, ReturnStatement,
     PrintStatement, ExpressionStatement, IfStatement, WhileStatement,
-    FunctionStatement, Identifier, NumberLiteral, StringLiteral,
-    BooleanLiteral, PrefixExpression, InfixExpression, CallExpression
+    ForInStatement, FunctionStatement, ImportStatement, TryCatchStatement,
+    ThrowStatement, Identifier, NumberLiteral, StringLiteral,
+    BooleanLiteral, ListLiteral, DictLiteral, IndexExpression,
+    PrefixExpression, InfixExpression, CallExpression
 )
+from stdlib import get_stdlib_modules
 
 # --- Runtime Objects ---
 
@@ -48,6 +52,30 @@ class DhicodeBoolean(DhicodeObject):
     def inspect(self) -> str:
         return "އާން" if self.value else "ނޫން"
 
+class DhicodeList(DhicodeObject):
+    def __init__(self, elements: List[DhicodeObject]):
+        self.elements = elements
+
+    def type_str(self) -> str:
+        return "ލިސްޓު"
+
+    def inspect(self) -> str:
+        return "[" + ", ".join(e.inspect() for e in self.elements) + "]"
+
+class DhicodeDict(DhicodeObject):
+    def __init__(self, pairs: Dict[Any, DhicodeObject]):
+        self.pairs = pairs
+
+    def type_str(self) -> str:
+        return "ރަދީފު"
+
+    def inspect(self) -> str:
+        items = []
+        for k, v in self.pairs.items():
+            k_str = k.inspect() if isinstance(k, DhicodeObject) else str(k)
+            items.append(f"{k_str}: {v.inspect()}")
+        return "{" + ", ".join(items) + "}"
+
 class DhicodeNull(DhicodeObject):
     def type_str(self) -> str:
         return "ހުސް"
@@ -66,14 +94,17 @@ class DhicodeReturnValue(DhicodeObject):
         return self.value.inspect()
 
 class DhicodeError(DhicodeObject):
-    def __init__(self, message: str):
+    def __init__(self, message: str, line: int = 0, column: int = 0):
         self.message = message
+        self.line = line
+        self.column = column
 
     def type_str(self) -> str:
         return "ކުށް"
 
     def inspect(self) -> str:
-        return f"ކުށް: {self.message}"
+        loc = f" (ލައިން {self.line})" if self.line > 0 else ""
+        return f"ކުށް{loc}: {self.message}"
 
 class DhicodeFunction(DhicodeObject):
     def __init__(self, parameters: List[Identifier], body: BlockStatement, env: 'Environment'):
@@ -124,8 +155,22 @@ class Environment:
 # --- Evaluator ---
 
 class Evaluator:
-    def __init__(self, output_callback=None):
+    def __init__(self, output_callback=None, base_path: str = "."):
         self.output_callback = output_callback if output_callback else print
+        self.base_path = base_path
+        self.module_cache: Dict[str, Environment] = {}
+
+        # Factory for stdlib
+        self.obj_factory = {
+            'num': lambda v: DhicodeNumber(v),
+            'string': lambda v: DhicodeString(v),
+            'boolean': lambda v: TRUE_OBJ if v else FALSE_OBJ,
+            'null': lambda: NULL_OBJ,
+            'list': lambda elems: DhicodeList(elems),
+            'error': lambda msg: DhicodeError(msg),
+            'builtin': lambda fn: DhicodeBuiltin(fn),
+        }
+        self.stdlib = get_stdlib_modules(self.obj_factory)
 
     def eval(self, node: Optional[Node], env: Environment) -> DhicodeObject:
         if node is None:
@@ -169,10 +214,24 @@ class Evaluator:
         elif isinstance(node, WhileStatement):
             return self._eval_while_statement(node, env)
 
+        elif isinstance(node, ForInStatement):
+            return self._eval_for_in_statement(node, env)
+
         elif isinstance(node, FunctionStatement):
             fn = DhicodeFunction(node.parameters, node.body, env)
             env.set(node.name.value, fn)
             return fn
+
+        elif isinstance(node, ImportStatement):
+            return self._eval_import_statement(node, env)
+
+        elif isinstance(node, TryCatchStatement):
+            return self._eval_try_catch_statement(node, env)
+
+        elif isinstance(node, ThrowStatement):
+            val = self.eval(node.expr, env)
+            msg = val.inspect() if not isinstance(val, DhicodeError) else val.message
+            return DhicodeError(msg, node.token.line, node.token.column)
 
         # Expressions
         elif isinstance(node, Identifier):
@@ -186,6 +245,38 @@ class Evaluator:
 
         elif isinstance(node, BooleanLiteral):
             return TRUE_OBJ if node.value else FALSE_OBJ
+
+        elif isinstance(node, ListLiteral):
+            elements = []
+            for el in node.elements:
+                val = self.eval(el, env)
+                if isinstance(val, DhicodeError):
+                    return val
+                elements.append(val)
+            return DhicodeList(elements)
+
+        elif isinstance(node, DictLiteral):
+            pairs = {}
+            for k_expr, v_expr in node.pairs.items():
+                k_val = self.eval(k_expr, env)
+                if isinstance(k_val, DhicodeError):
+                    return k_val
+                v_val = self.eval(v_expr, env)
+                if isinstance(v_val, DhicodeError):
+                    return v_val
+                # Use raw string/float/bool as dict key
+                raw_k = k_val.inspect()
+                pairs[raw_k] = v_val
+            return DhicodeDict(pairs)
+
+        elif isinstance(node, IndexExpression):
+            left = self.eval(node.left, env)
+            if isinstance(left, DhicodeError):
+                return left
+            index = self.eval(node.index, env)
+            if isinstance(index, DhicodeError):
+                return index
+            return self._eval_index_expression(left, index, node)
 
         elif isinstance(node, PrefixExpression):
             right = self.eval(node.right, env)
@@ -260,15 +351,123 @@ class Evaluator:
                 return result
         return result
 
+    def _eval_for_in_statement(self, node: ForInStatement, env: Environment) -> DhicodeObject:
+        iterable = self.eval(node.iterable, env)
+        if isinstance(iterable, DhicodeError):
+            return iterable
+
+        items = []
+        if isinstance(iterable, DhicodeList):
+            items = iterable.elements
+        elif isinstance(iterable, DhicodeString):
+            items = [DhicodeString(ch) for ch in iterable.value]
+        elif isinstance(iterable, DhicodeDict):
+            items = [DhicodeString(k) for k in iterable.pairs.keys()]
+        else:
+            return DhicodeError(f"{iterable.type_str()} ގެ މައްޗަށް 'ކޮންމެ' ލޫޕެއް ނުހިންގޭނެ")
+
+        result: DhicodeObject = NULL_OBJ
+        for it in items:
+            env.set(node.item.value, it)
+            result = self.eval(node.body, env)
+            if isinstance(result, DhicodeReturnValue):
+                return result
+            if isinstance(result, DhicodeError):
+                return result
+
+        return NULL_OBJ
+
+    def _eval_index_expression(self, left: DhicodeObject, index: DhicodeObject, node: IndexExpression) -> DhicodeObject:
+        if isinstance(left, DhicodeList):
+            if not isinstance(index, DhicodeNumber):
+                return DhicodeError(f"ލިސްޓުގެ އިންޑެކްސް ވާންވާނީ ނަންބަރަކަށް: {index.type_str()}")
+            idx = int(index.value)
+            if idx < 0:
+                idx = len(left.elements) + idx
+            if idx < 0 or idx >= len(left.elements):
+                return DhicodeError(f"ލިސްޓުގެ އިންޑެކްސް އިމުން ބޭރުވެއްޖެ: {idx}")
+            return left.elements[idx]
+
+        elif isinstance(left, DhicodeDict):
+            key = index.inspect()
+            if key in left.pairs:
+                return left.pairs[key]
+            return NULL_OBJ
+
+        elif isinstance(left, DhicodeString):
+            if not isinstance(index, DhicodeNumber):
+                return DhicodeError(f"ލިޔުމުގެ އިންޑެކްސް ވާންވާނީ ނަންބަރަކަށް: {index.type_str()}")
+            idx = int(index.value)
+            if idx < 0:
+                idx = len(left.value) + idx
+            if idx < 0 or idx >= len(left.value):
+                return DhicodeError(f"ލިޔުމުގެ އިންޑެކްސް އިމުން ބޭރުވެއްޖެ: {idx}")
+            return DhicodeString(left.value[idx])
+
+        return DhicodeError(f"އިންޑެކްސް ނުކުރެވޭ ބާވަތެއް: {left.type_str()}")
+
+    def _eval_import_statement(self, node: ImportStatement, env: Environment) -> DhicodeObject:
+        mod_name = node.path
+
+        # 1. Check Standard Library
+        if mod_name in self.stdlib:
+            for k, v in self.stdlib[mod_name].items():
+                env.set(k, v)
+            return NULL_OBJ
+
+        # 2. Check local file
+        target_path = os.path.join(self.base_path, mod_name)
+        if not target_path.endswith('.dhi'):
+            target_path += '.dhi'
+
+        if not os.path.exists(target_path):
+            return DhicodeError(f"ގެނޭ: ފައިލް ނުފެނުނު '{mod_name}'")
+
+        if target_path in self.module_cache:
+            mod_env = self.module_cache[target_path]
+        else:
+            try:
+                with open(target_path, 'r', encoding='utf-8') as f:
+                    source = f.read()
+            except Exception as e:
+                return DhicodeError(f"ގެނޭ: ފައިލް ކިޔުމުގައި މައްސަލައެއް: {e}")
+
+            from lexer import Lexer
+            from parser import Parser
+            lexer = Lexer(source)
+            parser = Parser(lexer)
+            program = parser.parse_program()
+            if parser.errors:
+                return DhicodeError(f"ގެނޭ: ޕާސިންގ މައްސަލަ: {parser.errors[0]}")
+
+            mod_env = Environment()
+            eval_res = self.eval(program, mod_env)
+            if isinstance(eval_res, DhicodeError):
+                return eval_res
+            self.module_cache[target_path] = mod_env
+
+        # Inject exported variables into current environment
+        for k, v in mod_env.store.items():
+            env.set(k, v)
+
+        return NULL_OBJ
+
+    def _eval_try_catch_statement(self, node: TryCatchStatement, env: Environment) -> DhicodeObject:
+        try_res = self.eval(node.try_block, env)
+        if isinstance(try_res, DhicodeError):
+            if node.error_var:
+                env.set(node.error_var.value, DhicodeString(try_res.message))
+            return self.eval(node.catch_block, env)
+        return try_res
+
     def _eval_identifier(self, node: Identifier, env: Environment) -> DhicodeObject:
         val = env.get(node.value)
         if val is not None:
             return val
-        # Check builtins
         builtin = self._get_builtin(node.value)
         if builtin is not None:
             return builtin
-        return DhicodeError(f"ނޭނގޭ ނަމެއް: '{node.value}'")
+        return DhicodeError(f"ނޭނގޭ ނަމެއް: '{node.value}'", node.token.line, node.token.column)
 
     def _is_truthy(self, obj: DhicodeObject) -> bool:
         if obj is NULL_OBJ:
@@ -279,6 +478,10 @@ class Evaluator:
             return obj.value != 0
         if isinstance(obj, DhicodeString):
             return len(obj.value) > 0
+        if isinstance(obj, DhicodeList):
+            return len(obj.elements) > 0
+        if isinstance(obj, DhicodeDict):
+            return len(obj.pairs) > 0
         return True
 
     def _eval_prefix_expression(self, operator: str, right: DhicodeObject) -> DhicodeObject:
@@ -291,19 +494,18 @@ class Evaluator:
         return DhicodeError(f"ނޭނގޭ އޮޕަރޭޓަރ: {operator}{right.type_str()}")
 
     def _eval_infix_expression(self, operator: str, left: DhicodeObject, right: DhicodeObject) -> DhicodeObject:
-        # String concatenation or coercion
         if operator == "+":
+            if isinstance(left, DhicodeList) and isinstance(right, DhicodeList):
+                return DhicodeList(left.elements + right.elements)
             if isinstance(left, DhicodeString) or isinstance(right, DhicodeString):
                 return DhicodeString(left.inspect() + right.inspect())
             if isinstance(left, DhicodeNumber) and isinstance(right, DhicodeNumber):
                 return DhicodeNumber(left.value + right.value)
             return DhicodeError(f"'+' ބޭނުމެއް ނުކުރެވޭނެ {left.type_str()} އަދި {right.type_str()} އާ ދެމެދު")
 
-        # Arithmetic
         if isinstance(left, DhicodeNumber) and isinstance(right, DhicodeNumber):
             return self._eval_numeric_infix(operator, left, right)
 
-        # Boolean logic
         if operator in ("==", "="):
             return TRUE_OBJ if self._is_equal(left, right) else FALSE_OBJ
         elif operator == "!=":
@@ -324,7 +526,7 @@ class Evaluator:
             return DhicodeNumber(l * r)
         elif operator == "/":
             if r == 0:
-                return DhicodeError("0 އަށް ބަހައެއް ނުލެވޭނެ")
+                return DhicodeError("0 އަށް ބަހައެއް ނުލެވޭނެ (ZeroDivisionError)")
             return DhicodeNumber(l / r)
         elif operator == "%":
             return DhicodeNumber(l % r)
@@ -351,6 +553,10 @@ class Evaluator:
             return left.value == right.value
         if isinstance(left, DhicodeBoolean) and isinstance(right, DhicodeBoolean):
             return left.value == right.value
+        if isinstance(left, DhicodeList) and isinstance(right, DhicodeList):
+            if len(left.elements) != len(right.elements):
+                return False
+            return all(self._is_equal(a, b) for a, b in zip(left.elements, right.elements))
         return False
 
     def _apply_function(self, fn: DhicodeObject, args: List[DhicodeObject]) -> DhicodeObject:
@@ -375,6 +581,10 @@ class Evaluator:
             "އަހާ": DhicodeBuiltin(self._builtin_input),
             "ދިގުމިން": DhicodeBuiltin(self._builtin_len),
             "ބާވަތް": DhicodeBuiltin(self._builtin_type),
+            "އަޅާ": DhicodeBuiltin(self._builtin_append),
+            "ނަގާ": DhicodeBuiltin(self._builtin_pop),
+            "ތަޅުދަނޑިތައް": DhicodeBuiltin(self._builtin_keys),
+            "އަގުތައް": DhicodeBuiltin(self._builtin_values),
         }
         return builtins.get(name)
 
@@ -397,9 +607,41 @@ class Evaluator:
         target = args[0]
         if isinstance(target, DhicodeString):
             return DhicodeNumber(len(target.value))
+        if isinstance(target, DhicodeList):
+            return DhicodeNumber(len(target.elements))
+        if isinstance(target, DhicodeDict):
+            return DhicodeNumber(len(target.pairs))
         return DhicodeError(f"{target.type_str()} ގެ ދިގުމިނެއް ނުހޯދޭނެ")
 
     def _builtin_type(self, *args: DhicodeObject) -> DhicodeObject:
         if not args:
             return DhicodeError("ބާވަތް() ބޭނުންކުރާއިރު އެއްޗެއް ދޭންވާނެ")
         return DhicodeString(args[0].type_str())
+
+    def _builtin_append(self, *args: DhicodeObject) -> DhicodeObject:
+        if len(args) < 2 or not isinstance(args[0], DhicodeList):
+            return DhicodeError("އަޅާ() އަށް ލިސްޓަކާއި އެއްޗެއް ދޭންވާނެ")
+        args[0].elements.append(args[1])
+        return args[0]
+
+    def _builtin_pop(self, *args: DhicodeObject) -> DhicodeObject:
+        if not args or not isinstance(args[0], DhicodeList):
+            return DhicodeError("ނަގާ() އަށް ލިސްޓެއް ދޭންވާނެ")
+        lst = args[0]
+        if not lst.elements:
+            return DhicodeError("ހުސް ލިސްޓަކުން އެއްޗެއް ނުނެގޭނެ")
+        idx = int(args[1].value) if len(args) > 1 and isinstance(args[1], DhicodeNumber) else -1
+        try:
+            return lst.elements.pop(idx)
+        except IndexError:
+            return DhicodeError("ލިސްޓުގެ އިންޑެކްސް އިމުން ބޭރުވެއްޖެ")
+
+    def _builtin_keys(self, *args: DhicodeObject) -> DhicodeObject:
+        if not args or not isinstance(args[0], DhicodeDict):
+            return DhicodeError("ތަޅުދަނޑިތައް() އަށް ރަދީފެއް ދޭންވާނެ")
+        return DhicodeList([DhicodeString(k) for k in args[0].pairs.keys()])
+
+    def _builtin_values(self, *args: DhicodeObject) -> DhicodeObject:
+        if not args or not isinstance(args[0], DhicodeDict):
+            return DhicodeError("އަގުތައް() އަށް ރަދީފެއް ދޭންވާނެ")
+        return DhicodeList(list(args[0].pairs.values()))

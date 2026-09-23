@@ -17,7 +17,7 @@
     ],
     "description": "Define a C++ style function in DhiCode (ފަންކް)"
   },
-  "Variable Assignment (kanda'alhaa)": {
+  "Variable Assignment (kanda)": {
     "prefix": "kanda",
     "body": [
       "ކަނޑައަޅާ ${1:ނަން} = ${2:އަގު}"
@@ -40,7 +40,7 @@
     ],
     "description": "If conditional block (ނަމަ)"
   },
-  "If-Else Statement (nama-noonnama)": {
+  "If-Else Statement (namanoon)": {
     "prefix": "namanoon",
     "body": [
       "ނަމަ ${1:ޝަރުޠު}",
@@ -60,19 +60,39 @@
     ],
     "description": "While loop block (ހިނދު)"
   },
+  "For-In Loop (konme)": {
+    "prefix": "konme",
+    "body": [
+      "ކޮންމެ ${1:އެތި} ތެރޭގައި ${2:ލިސްޓު}",
+      "\t$0",
+      "ނިމުނީ"
+    ],
+    "description": "For-Each loop block (ކޮންމެ ... ތެރޭގައި)"
+  },
+  "Try-Catch (masakkai)": {
+    "prefix": "trycatch",
+    "body": [
+      "މަސައްކަތްކުރޭ",
+      "\t$1",
+      "ކުށެއް_ފެނިއްޖެނަމަ ${2:ކުށް}",
+      "\t$0",
+      "ނިމުނީ"
+    ],
+    "description": "Try-Catch error handling block (މަސައްކަތްކުރޭ)"
+  },
+  "Import Statement (gene)": {
+    "prefix": "gene",
+    "body": [
+      "ގެނޭ \"${1:ހިސާބު}\""
+    ],
+    "description": "Import module or file (ގެނޭ)"
+  },
   "Print Statement (dhakkaa)": {
     "prefix": "dhakkaa",
     "body": [
       "ދައްކާ ${1:އަގު}"
     ],
     "description": "Output / Print statement (ދައްކާ)"
-  },
-  "Write Statement (liye)": {
-    "prefix": "liye",
-    "body": [
-      "ލިޔޭ ${1:އަގު}"
-    ],
-    "description": "Write / Print statement (ލިޔޭ)"
   },
   "Return Statement (fonuvaa)": {
     "prefix": "fonuvaa",

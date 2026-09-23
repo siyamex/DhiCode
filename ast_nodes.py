@@ -1,6 +1,6 @@
 # ast_nodes.py
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional, List, Dict
 from lexer import Token
 
 class Node(ABC):
@@ -117,6 +117,19 @@ class WhileStatement(Statement):
     def __str__(self) -> str:
         return f"ހިނދު {str(self.condition)}\n{str(self.body)}\nނިމުނީ"
 
+class ForInStatement(Statement):
+    def __init__(self, token: Token, item: 'Identifier', iterable: Expression, body: BlockStatement):
+        self.token = token
+        self.item = item
+        self.iterable = iterable
+        self.body = body
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f"ކޮންމެ {str(self.item)} ތެރޭގައި {str(self.iterable)}\n{str(self.body)}\nނިމުނީ"
+
 class FunctionStatement(Statement):
     def __init__(self, token: Token, name: 'Identifier', parameters: List['Identifier'], body: BlockStatement):
         self.token = token
@@ -130,6 +143,42 @@ class FunctionStatement(Statement):
     def __str__(self) -> str:
         params = ", ".join(str(p) for p in self.parameters)
         return f"ވަޒީފާ {str(self.name)}({params})\n{str(self.body)}\nނިމުނީ"
+
+class ImportStatement(Statement):
+    def __init__(self, token: Token, path: str):
+        self.token = token
+        self.path = path
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f'ގެނޭ "{self.path}";'
+
+class TryCatchStatement(Statement):
+    def __init__(self, token: Token, try_block: BlockStatement, error_var: Optional['Identifier'], catch_block: BlockStatement):
+        self.token = token
+        self.try_block = try_block
+        self.error_var = error_var
+        self.catch_block = catch_block
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        var_str = f" {str(self.error_var)}" if self.error_var else ""
+        return f"މަސައްކަތްކުރޭ\n{str(self.try_block)}\nކުށެއް_ފެނިއްޖެނަމަ{var_str}\n{str(self.catch_block)}\nނިމުނީ"
+
+class ThrowStatement(Statement):
+    def __init__(self, token: Token, expr: Expression):
+        self.token = token
+        self.expr = expr
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f"އުކާލާ {str(self.expr)};"
 
 # Expressions
 
@@ -178,6 +227,42 @@ class BooleanLiteral(Expression):
 
     def __str__(self) -> str:
         return "އާން" if self.value else "ނޫން"
+
+class ListLiteral(Expression):
+    def __init__(self, token: Token, elements: List[Expression]):
+        self.token = token
+        self.elements = elements
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        elems = ", ".join(str(e) for e in self.elements)
+        return f"[{elems}]"
+
+class DictLiteral(Expression):
+    def __init__(self, token: Token, pairs: Dict[Expression, Expression]):
+        self.token = token
+        self.pairs = pairs
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        items = ", ".join(f"{str(k)}: {str(v)}" for k, v in self.pairs.items())
+        return f"{{{items}}}"
+
+class IndexExpression(Expression):
+    def __init__(self, token: Token, left: Expression, index: Expression):
+        self.token = token
+        self.left = left
+        self.index = index
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f"({str(self.left)}[{str(self.index)}])"
 
 class PrefixExpression(Expression):
     def __init__(self, token: Token, operator: str, right: Expression):

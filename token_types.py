@@ -29,6 +29,9 @@ TT_LPAREN   = '('
 TT_RPAREN   = ')'
 TT_LBRACE   = '{'
 TT_RBRACE   = '}'
+TT_LBRACKET = '['
+TT_RBRACKET = ']'
+TT_COLON    = ':'
 TT_COMMA    = ','
 TT_SEMICOLON= ';'
 
@@ -45,3 +48,11 @@ TT_TRUE     = 'TRUE'      # އާން
 TT_FALSE    = 'FALSE'     # ނޫން
 TT_AND      = 'AND'       # އަދި
 TT_OR       = 'OR'        # ނުވަތަ
+
+# Advanced Keywords
+TT_FOR      = 'FOR'       # ކޮންމެ
+TT_IN       = 'IN'        # ތެރޭގައި
+TT_IMPORT   = 'IMPORT'    # ގެނޭ
+TT_TRY      = 'TRY'       # މަސައްކަތްކުރޭ
+TT_CATCH    = 'CATCH'     # ކުށެއް_ފެނިއްޖެނަމަ
+TT_THROW    = 'THROW'     # އުކާލާ

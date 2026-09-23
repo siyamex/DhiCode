@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="dv" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DhiCode Playground | ދިވެހި ކޯޑު</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Noto+Sans+Thaana:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-brand">
+      <span class="flag-icon">🇲🇻</span>
+      <h1>DhiCode <span class="dhivehi-sub">ދިވެހި ކޯޑު</span></h1>
+      <span class="badge">WebAssembly</span>
+    </div>
+
+    <div class="header-controls">
+      <div class="select-wrapper">
+        <label for="example-select">މިސާލު:</label>
+        <select id="example-select">
+          <option value="hello">މަރުޙަބާ (Hello World)</option>
+          <option value="lists">ލިސްޓާއި ކޮންމެ ލޫޕް (Lists & Loops)</option>
+          <option value="factorial">ފެކްޓޯރިއަލް (Recursion)</option>
+          <option value="math">ހިސާބު މޮޑިއުލް (Math StdLib)</option>
+          <option value="trycatch">ކުށް ސަލާމަތްކުރުން (Try/Catch)</option>
+        </select>
+      </div>
+
+      <button id="btn-dir" class="btn btn-secondary" title="ބަދަލުކުރޭ RTL / LTR">
+        <span id="dir-icon">🔀</span> RTL
+      </button>
+
+      <button id="btn-clear" class="btn btn-secondary">
+        ފޮހެލާ (Clear)
+      </button>
+
+      <button id="btn-run" class="btn btn-primary">
+        ▶ ހިންގާ (Run)
+      </button>
+
+      <a href="https://github.com/siyamex/DhiCode" target="_blank" class="btn btn-github">
+        GitHub
+      </a>
+    </div>
+  </header>
+
+  <main class="playground-container">
+    <!-- Editor Pane -->
+    <section class="pane editor-pane">
+      <div class="pane-header">
+        <span class="pane-title">📝 ކޯޑު އެޑިޓަރ (main.dhi)</span>
+        <span class="shortcut-hint">Ctrl + Enter / Cmd + Enter އިން ހިންގާ</span>
+      </div>
+      <div class="editor-wrapper">
+        <textarea id="code-editor" spellcheck="false" placeholder="މިތަނުގައި ދިވެހި ކޯޑު ލިޔުއްވާ..."></textarea>
+      </div>
+    </section>
+
+    <!-- Terminal Output Pane -->
+    <section class="pane terminal-pane">
+      <div class="pane-header">
+        <span class="pane-title">💻 ނަތީޖާ (Output Terminal)</span>
+        <span id="runtime-status" class="status-indicator loading">ލޯޑުވަނީ...</span>
+      </div>
+      <div class="terminal-body" id="terminal-output">
+        <div class="terminal-welcome">
+          🇲🇻 DhiCode Playground އަށް މަރުޙަބާ!<br>
+          ޕައިތަން Wasm ރަންޓައިމް ތައްޔާރުވަނީ...
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="examples.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -27,6 +27,14 @@ KEYWORDS = {
     "އަދި": tt.TT_AND,
     "ނުވަތަ": tt.TT_OR,
 
+    # Advanced keywords
+    "ކޮންމެ": tt.TT_FOR,
+    "ތެރޭގައި": tt.TT_IN,
+    "ގެނޭ": tt.TT_IMPORT,
+    "މަސައްކަތްކުރޭ": tt.TT_TRY,
+    "ކުށެއް_ފެނިއްޖެނަމަ": tt.TT_CATCH,
+    "އުކާލާ": tt.TT_THROW,
+
     # Compatibility keywords
     "ބަހައްޓާ": tt.TT_LET,
     "ފަންކް": tt.TT_FUNCTION,
@@ -171,7 +179,7 @@ class Lexer:
         if self.ch == '"':
             return self._read_string()
 
-        # Operators & Delimiters
+        # Multi-char operators
         if self.ch == '=':
             if self._peek_char() == '=':
                 self._read_char()
@@ -200,6 +208,8 @@ class Lexer:
                 return Token(tt.TT_GTE, ">=", self.line, col)
             self._read_char()
             return Token(tt.TT_GT, ">", self.line, col)
+
+        # Single-character tokens & Delimiters
         elif self.ch == '+':
             self._read_char()
             return Token(tt.TT_PLUS, "+", self.line, col)
@@ -227,6 +237,15 @@ class Lexer:
         elif self.ch == '}':
             self._read_char()
             return Token(tt.TT_RBRACE, "}", self.line, col)
+        elif self.ch == '[':
+            self._read_char()
+            return Token(tt.TT_LBRACKET, "[", self.line, col)
+        elif self.ch == ']':
+            self._read_char()
+            return Token(tt.TT_RBRACKET, "]", self.line, col)
+        elif self.ch == ':':
+            self._read_char()
+            return Token(tt.TT_COLON, ":", self.line, col)
         elif self.ch == ',':
             self._read_char()
             return Token(tt.TT_COMMA, ",", self.line, col)

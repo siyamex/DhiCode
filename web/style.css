@@ -1,0 +1,275 @@
+:root {
+  --bg-primary: #12141a;
+  --bg-secondary: #1a1d26;
+  --bg-tertiary: #242938;
+  --border-color: #31384e;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --accent: #38bdf8;
+  --accent-hover: #0284c7;
+  --success: #3fb950;
+  --warning: #d29922;
+  --error: #f85149;
+  --font-thaana: 'Noto Sans Thaana', 'Faruma', 'MV Boli', sans-serif;
+  --font-mono: 'Fira Code', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-thaana);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Header */
+.app-header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-brand h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dhivehi-sub {
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.flag-icon {
+  font-size: 1.5rem;
+}
+
+.badge {
+  background-color: var(--bg-tertiary);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+select {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: var(--font-thaana);
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+}
+
+select:focus {
+  border-color: var(--accent);
+}
+
+/* Buttons */
+.btn {
+  padding: 7px 16px;
+  border-radius: 6px;
+  border: none;
+  font-family: var(--font-thaana);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-secondary {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: #2e3547;
+}
+
+.btn-github {
+  background-color: #24292f;
+  color: #ffffff;
+  border: 1px solid #444c56;
+}
+
+.btn-github:hover {
+  background-color: #32383f;
+}
+
+/* Main Container */
+.playground-container {
+  flex: 1;
+  display: flex;
+  height: calc(100vh - 65px);
+  overflow: hidden;
+}
+
+.pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+  overflow: hidden;
+}
+
+.editor-pane {
+  border-left: 1px solid var(--border-color);
+}
+
+.pane-header {
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.pane-title {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.shortcut-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.status-indicator {
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.status-indicator.loading {
+  background-color: rgba(210, 153, 34, 0.2);
+  color: var(--warning);
+}
+
+.status-indicator.ready {
+  background-color: rgba(63, 185, 80, 0.2);
+  color: var(--success);
+}
+
+/* Editor */
+.editor-wrapper {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+#code-editor {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  background-color: #0d1117;
+  color: #c9d1d9;
+  border: none;
+  outline: none;
+  padding: 16px;
+  font-family: var(--font-thaana), var(--font-mono);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  resize: none;
+  white-space: pre;
+  tab-size: 4;
+}
+
+/* Terminal */
+.terminal-body {
+  flex: 1;
+  background-color: #06090e;
+  padding: 16px;
+  font-family: var(--font-thaana), var(--font-mono);
+  font-size: 1rem;
+  line-height: 1.7;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.terminal-welcome {
+  color: var(--text-secondary);
+  border-bottom: 1px dashed var(--border-color);
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.terminal-line {
+  margin-bottom: 4px;
+}
+
+.terminal-error {
+  color: var(--error);
+}
+
+.terminal-success {
+  color: var(--success);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .playground-container {
+    flex-direction: column;
+  }
+  .editor-pane {
+    border-left: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+}
