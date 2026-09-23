@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# dhicode.py - Command-line interface and REPL for DhiCode
+# dhicode.py - Command-line interface, REPL, Packager, Formatter & LSP Launcher for DhiCode
 import sys
 import os
 
@@ -124,6 +124,106 @@ def start_repl():
         elif result and result is not NULL_OBJ:
             print(result.inspect())
 
+# =============================================================================
+# Standalone Binary & Package Builder [Option 3]
+# =============================================================================
+def build_standalone(source_file: str, output_path: str = None) -> int:
+    import zipapp
+    import tempfile
+    import shutil
+
+    if not os.path.exists(source_file):
+        print(f"Error: Source file not found: '{source_file}'", file=sys.stderr)
+        return 1
+
+    try:
+        with open(source_file, 'r', encoding='utf-8') as f:
+            user_source = f.read()
+    except Exception as e:
+        print(f"Error reading '{source_file}': {e}", file=sys.stderr)
+        return 1
+
+    base_name = os.path.splitext(os.path.basename(source_file))[0]
+    if not output_path:
+        output_path = f"{base_name}.pyz"
+
+    if not output_path.endswith('.pyz'):
+        pyz_target = f"{output_path}.pyz"
+    else:
+        pyz_target = output_path
+
+    # Ensure target output directory exists
+    out_dir = os.path.dirname(pyz_target)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        root_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Core runtime files to bundle
+        runtime_files = [
+            "token_types.py", "lexer.py", "ast_nodes.py",
+            "parser.py", "stdlib.py", "evaluator.py", "dhicode.py"
+        ]
+
+        for fname in runtime_files:
+            src = os.path.join(root_dir, fname)
+            if os.path.exists(src):
+                shutil.copy2(src, os.path.join(temp_dir, fname))
+
+        # Embedded standalone __main__.py
+        main_py = os.path.join(temp_dir, "__main__.py")
+        with open(main_py, 'w', encoding='utf-8') as f:
+            f.write(f'''#!/usr/bin/env python3
+# Standalone DhiCode Executable Application
+# Generated from {os.path.basename(source_file)}
+import sys
+import os
+
+if sys.platform == "win32":
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+    if hasattr(sys.stderr, "reconfigure"):
+        try:
+            sys.stderr.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
+from dhicode import run_source
+
+SOURCE = {repr(user_source)}
+
+def main():
+    sys.exit(run_source(SOURCE, filename="{os.path.basename(source_file)}"))
+
+if __name__ == "__main__":
+    main()
+''')
+
+        # Package into standalone zipapp (since __main__.py is present, main arg is not needed)
+        zipapp.create_archive(
+            temp_dir,
+            target=pyz_target,
+            interpreter="/usr/bin/env python3"
+        )
+
+    # Windows batch launcher
+    cmd_path = os.path.splitext(pyz_target)[0] + ".bat"
+    if sys.platform == "win32":
+        with open(cmd_path, 'w', encoding='utf-8') as f:
+            f.write(f'@echo off\npython "%~dp0{os.path.basename(pyz_target)}" %*\n')
+
+    size_kb = round(os.path.getsize(pyz_target) / 1024, 1)
+    print(f"✅ Standalone executable built successfully!")
+    print(f"📦 Archive: {pyz_target} ({size_kb} KB)")
+    if sys.platform == "win32":
+        print(f"⚡ Windows Launcher: {cmd_path}")
+    print(f"🚀 To run: python {pyz_target}")
+    return 0
+
 def main():
     if len(sys.argv) < 2:
         start_repl()
@@ -131,19 +231,55 @@ def main():
 
     cmd = sys.argv[1]
     if cmd in ("-h", "--help", "help"):
-        print("Usage:")
-        print("  python dhicode.py run <file.dhi>    Run a DhiCode source file")
-        print("  python dhicode.py repl              Start interactive REPL")
-        print("  python dhicode.py                   Start interactive REPL")
+        print("DhiCode (ދިވެހި ކޯޑު) CLI - Modern Dhivehi Programming Language")
+        print("\nCommands:")
+        print("  python dhicode.py run <file.dhi>          Run a DhiCode source file")
+        print("  python dhicode.py build <file.dhi> [-o]   Build standalone executable package")
+        print("  python dhicode.py fmt <file.dhi> [-w|-c]  Format Dhivehi source code")
+        print("  python dhicode.py lsp                     Launch Language Server Protocol (LSP)")
+        print("  python dhicode.py repl                    Start interactive REPL")
+        print("  python dhicode.py                         Start interactive REPL")
         return
 
     if cmd == "repl":
         start_repl()
+
     elif cmd == "run":
         if len(sys.argv) < 3:
             print("Error: Please provide a .dhi file to run.", file=sys.stderr)
             sys.exit(1)
         sys.exit(run_file(sys.argv[2]))
+
+    elif cmd == "build":
+        if len(sys.argv) < 3:
+            print("Error: Please provide a .dhi file to build.", file=sys.stderr)
+            print("Usage: python dhicode.py build <file.dhi> [-o output_name]")
+            sys.exit(1)
+        target_file = sys.argv[2]
+        output = None
+        if len(sys.argv) > 3:
+            if sys.argv[3] in ("-o", "--output") and len(sys.argv) > 4:
+                output = sys.argv[4]
+            else:
+                output = sys.argv[3]
+        sys.exit(build_standalone(target_file, output_path=output))
+
+    elif cmd == "fmt":
+        if len(sys.argv) < 3:
+            print("Error: Please provide a .dhi file to format.", file=sys.stderr)
+            print("Usage: python dhicode.py fmt <file.dhi> [--write] [--check]")
+            sys.exit(1)
+        import formatter
+        target_file = sys.argv[2]
+        is_write = "--write" in sys.argv or "-w" in sys.argv
+        is_check = "--check" in sys.argv or "-c" in sys.argv
+        sys.exit(formatter.format_file(target_file, write=is_write, check=is_check))
+
+    elif cmd == "lsp":
+        from lsp_server import DhiCodeLspServer
+        server = DhiCodeLspServer()
+        server.run()
+
     else:
         if os.path.exists(cmd):
             sys.exit(run_file(cmd))
