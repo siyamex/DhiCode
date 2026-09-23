@@ -2,11 +2,12 @@
 import os
 from typing import Dict, Any, Optional, List
 from ast_nodes import (
-    Node, Program, BlockStatement, LetStatement, ReturnStatement,
+    Node, Program, BlockStatement, LetStatement, ConstStatement,
+    AssignmentStatement, IndexAssignmentStatement, ReturnStatement,
     PrintStatement, ExpressionStatement, IfStatement, WhileStatement,
     ForInStatement, FunctionStatement, ImportStatement, TryCatchStatement,
     ThrowStatement, Identifier, NumberLiteral, StringLiteral,
-    BooleanLiteral, ListLiteral, DictLiteral, IndexExpression,
+    BooleanLiteral, NullLiteral, ListLiteral, DictLiteral, IndexExpression,
     PrefixExpression, InfixExpression, CallExpression
 )
 from stdlib import get_stdlib_modules
@@ -139,6 +140,7 @@ NULL_OBJ = DhicodeNull()
 class Environment:
     def __init__(self, outer: Optional['Environment'] = None):
         self.store: Dict[str, DhicodeObject] = {}
+        self.constants: set = set()
         self.outer = outer
 
     def get(self, name: str) -> Optional[DhicodeObject]:
@@ -149,6 +151,33 @@ class Environment:
         return None
 
     def set(self, name: str, val: DhicodeObject) -> DhicodeObject:
+        if name in self.constants:
+            return DhicodeError(f"ދާއިމީ ވެރިއަބަލް '{name}' ގެ އަގު ބަދަލެއް ނުކުރެވޭނެ")
+        self.store[name] = val
+        return val
+
+    def define_const(self, name: str, val: DhicodeObject) -> DhicodeObject:
+        if name in self.constants:
+            return DhicodeError(f"ދާއިމީ ވެރިއަބަލް '{name}' ގެ އަގު ބަދަލެއް ނުކުރެވޭނެ")
+        self.store[name] = val
+        self.constants.add(name)
+        return val
+
+    def is_const(self, name: str) -> bool:
+        if name in self.constants:
+            return True
+        if self.outer is not None:
+            return self.outer.is_const(name)
+        return False
+
+    def assign(self, name: str, val: DhicodeObject) -> DhicodeObject:
+        if name in self.store:
+            if name in self.constants:
+                return DhicodeError(f"ދާއިމީ ވެރިއަބަލް '{name}' ގެ އަގު ބަދަލެއް ނުކުރެވޭނެ")
+            self.store[name] = val
+            return val
+        if self.outer is not None and self.outer.get(name) is not None:
+            return self.outer.assign(name, val)
         self.store[name] = val
         return val
 
@@ -231,8 +260,80 @@ class Evaluator:
             val = self.eval(node.value, env)
             if isinstance(val, DhicodeError):
                 return val
-            env.set(node.name.value, val)
+            res = env.set(node.name.value, val)
+            if isinstance(res, DhicodeError):
+                return res
             return val
+
+        elif isinstance(node, ConstStatement):
+            val = self.eval(node.value, env)
+            if isinstance(val, DhicodeError):
+                return val
+            res = env.define_const(node.name.value, val)
+            if isinstance(res, DhicodeError):
+                return res
+            return val
+
+        elif isinstance(node, AssignmentStatement):
+            val = self.eval(node.value, env)
+            if isinstance(val, DhicodeError):
+                return val
+
+            if node.operator == "=":
+                new_val = val
+            else:
+                curr = env.get(node.name.value)
+                if curr is None:
+                    return DhicodeError(f"ނޭނގޭ ނަމެއް: '{node.name.value}'", node.token.line, node.token.column)
+                if isinstance(curr, DhicodeError):
+                    return curr
+                base_op = node.operator[:-1]
+                new_val = self._eval_infix_expression(base_op, curr, val)
+                if isinstance(new_val, DhicodeError):
+                    return new_val
+
+            res = env.assign(node.name.value, new_val)
+            if isinstance(res, DhicodeError):
+                return res
+            return new_val
+
+        elif isinstance(node, IndexAssignmentStatement):
+            target = self.eval(node.target, env)
+            if isinstance(target, DhicodeError):
+                return target
+            index = self.eval(node.index, env)
+            if isinstance(index, DhicodeError):
+                return index
+            val = self.eval(node.value, env)
+            if isinstance(val, DhicodeError):
+                return val
+
+            if node.operator != "=":
+                curr = self._eval_index_expression(target, index, None)
+                if isinstance(curr, DhicodeError):
+                    return curr
+                base_op = node.operator[:-1]
+                val = self._eval_infix_expression(base_op, curr, val)
+                if isinstance(val, DhicodeError):
+                    return val
+
+            if isinstance(target, DhicodeList):
+                if not isinstance(index, DhicodeNumber):
+                    return DhicodeError(f"ލިސްޓުގެ އިންޑެކްސް ވާންވާނީ ނަންބަރަކަށް: {index.type_str()}")
+                idx = int(index.value)
+                if idx < 0:
+                    idx = len(target.elements) + idx
+                if idx < 0 or idx >= len(target.elements):
+                    return DhicodeError(f"ލިސްޓުގެ އިންޑެކްސް އިމުން ބޭރުވެއްޖެ: {idx}")
+                target.elements[idx] = val
+                return val
+
+            elif isinstance(target, DhicodeDict):
+                key = index.inspect()
+                target.pairs[key] = val
+                return val
+
+            return DhicodeError(f"އިންޑެކްސް އަށް އަގު ނުލެވޭ ބާވަތެއް: {target.type_str()}")
 
         elif isinstance(node, ReturnStatement):
             val = self.eval(node.return_value, env) if node.return_value else NULL_OBJ
@@ -283,10 +384,13 @@ class Evaluator:
             return DhicodeNumber(node.value)
 
         elif isinstance(node, StringLiteral):
-            return DhicodeString(node.value)
+            return self._interpolate_string(node.value, env)
 
         elif isinstance(node, BooleanLiteral):
             return TRUE_OBJ if node.value else FALSE_OBJ
+
+        elif isinstance(node, NullLiteral):
+            return NULL_OBJ
 
         elif isinstance(node, ListLiteral):
             elements = []
@@ -330,6 +434,31 @@ class Evaluator:
             left = self.eval(node.left, env)
             if isinstance(left, DhicodeError):
                 return left
+
+            # Short-circuit logical AND
+            if node.operator in ("&&", "އަދި", "and"):
+                if not self._is_truthy(left):
+                    return FALSE_OBJ
+                right = self.eval(node.right, env)
+                if isinstance(right, DhicodeError):
+                    return right
+                return TRUE_OBJ if self._is_truthy(right) else FALSE_OBJ
+
+            # Short-circuit logical OR
+            if node.operator in ("||", "ނުވަތަ", "or"):
+                if self._is_truthy(left):
+                    return TRUE_OBJ
+                right = self.eval(node.right, env)
+                if isinstance(right, DhicodeError):
+                    return right
+                return TRUE_OBJ if self._is_truthy(right) else FALSE_OBJ
+
+            # Short-circuit null coalescing
+            if node.operator == "??":
+                if not isinstance(left, DhicodeNull):
+                    return left
+                return self.eval(node.right, env)
+
             right = self.eval(node.right, env)
             if isinstance(right, DhicodeError):
                 return right
@@ -527,15 +656,22 @@ class Evaluator:
         return True
 
     def _eval_prefix_expression(self, operator: str, right: DhicodeObject) -> DhicodeObject:
-        if operator == "!":
+        if operator in ("!", "not"):
             return FALSE_OBJ if self._is_truthy(right) else TRUE_OBJ
         elif operator == "-":
             if not isinstance(right, DhicodeNumber):
                 return DhicodeError(f"ނަންބަރެއް ނޫން އަދަދަކަށް '-' ބޭނުމެއް ނުކުރެވޭނެ: {right.type_str()}")
             return DhicodeNumber(-right.value)
+        elif operator == "~":
+            if not isinstance(right, DhicodeNumber):
+                return DhicodeError(f"ނަންބަރެއް ނޫން އަދަދަކަށް '~' ބޭނުމެއް ނުކުރެވޭނެ: {right.type_str()}")
+            return DhicodeNumber(~int(right.value))
         return DhicodeError(f"ނޭނގޭ އޮޕަރޭޓަރ: {operator}{right.type_str()}")
 
     def _eval_infix_expression(self, operator: str, left: DhicodeObject, right: DhicodeObject) -> DhicodeObject:
+        if operator == "??":
+            return right if isinstance(left, DhicodeNull) else left
+
         if operator == "+":
             if isinstance(left, DhicodeList) and isinstance(right, DhicodeList):
                 return DhicodeList(left.elements + right.elements)
@@ -572,6 +708,24 @@ class Evaluator:
             return DhicodeNumber(l / r)
         elif operator == "%":
             return DhicodeNumber(l % r)
+        elif operator == "**":
+            try:
+                res = l ** r
+                if isinstance(res, complex):
+                    return DhicodeError("މަންފީ ނަންބަރެއްގެ ފްރެކްޝަނަލް ޕަވަރ އެއް ނުހޯދޭނެ")
+                return DhicodeNumber(res)
+            except Exception as e:
+                return DhicodeError(f"ޕަވަރ ހޯދުމުގައި މައްސަލައެއް: {e}")
+        elif operator == "&":
+            return DhicodeNumber(int(l) & int(r))
+        elif operator == "|":
+            return DhicodeNumber(int(l) | int(r))
+        elif operator == "^":
+            return DhicodeNumber(int(l) ^ int(r))
+        elif operator == "<<":
+            return DhicodeNumber(int(l) << int(r))
+        elif operator == ">>":
+            return DhicodeNumber(int(l) >> int(r))
         elif operator == "<":
             return TRUE_OBJ if l < r else FALSE_OBJ
         elif operator == ">":
@@ -627,6 +781,16 @@ class Evaluator:
             "ނަގާ": DhicodeBuiltin(self._builtin_pop),
             "ތަޅުދަނޑިތައް": DhicodeBuiltin(self._builtin_keys),
             "އަގުތައް": DhicodeBuiltin(self._builtin_values),
+            # English aliases
+            "print": DhicodeBuiltin(self._builtin_print),
+            "input": DhicodeBuiltin(self._builtin_input),
+            "len": DhicodeBuiltin(self._builtin_len),
+            "type": DhicodeBuiltin(self._builtin_type),
+            "append": DhicodeBuiltin(self._builtin_append),
+            "push": DhicodeBuiltin(self._builtin_append),
+            "pop": DhicodeBuiltin(self._builtin_pop),
+            "keys": DhicodeBuiltin(self._builtin_keys),
+            "values": DhicodeBuiltin(self._builtin_values),
         }
         return builtins.get(name)
 
@@ -687,3 +851,58 @@ class Evaluator:
         if not args or not isinstance(args[0], DhicodeDict):
             return DhicodeError("އަގުތައް() އަށް ރަދީފެއް ދޭންވާނެ")
         return DhicodeList(list(args[0].pairs.values()))
+
+    def _interpolate_string(self, s: str, env: Environment) -> DhicodeObject:
+        if "{" not in s:
+            return DhicodeString(s)
+
+        result = []
+        i = 0
+        n = len(s)
+        while i < n:
+            if s[i] == '\\' and i + 1 < n and s[i+1] in ('{', '}'):
+                result.append(s[i+1])
+                i += 2
+            elif s[i] == '{':
+                brace_count = 1
+                j = i + 1
+                in_quote = None
+                while j < n and brace_count > 0:
+                    ch = s[j]
+                    if in_quote:
+                        if ch == '\\' and j + 1 < n:
+                            j += 1
+                        elif ch == in_quote:
+                            in_quote = None
+                    else:
+                        if ch in ('"', "'"):
+                            in_quote = ch
+                        elif ch == '{':
+                            brace_count += 1
+                        elif ch == '}':
+                            brace_count -= 1
+                    if brace_count > 0:
+                        j += 1
+                if brace_count == 0:
+                    expr_str = s[i+1:j].strip()
+                    if expr_str:
+                        from lexer import Lexer
+                        from parser import Parser, Precedence
+                        sub_lexer = Lexer(expr_str)
+                        sub_parser = Parser(sub_lexer)
+                        sub_expr = sub_parser.parse_expression(Precedence.LOWEST)
+                        if sub_parser.errors:
+                            return DhicodeError(f"ސްޓްރިންގ އިންޓަޕޮލޭޝަން ކުށް: {sub_parser.errors[0]}")
+                        val = self.eval(sub_expr, env)
+                        if isinstance(val, DhicodeError):
+                            return val
+                        result.append(val.inspect())
+                    i = j + 1
+                else:
+                    result.append(s[i])
+                    i += 1
+            else:
+                result.append(s[i])
+                i += 1
+
+        return DhicodeString("".join(result))

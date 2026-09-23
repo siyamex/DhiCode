@@ -54,6 +54,46 @@ class LetStatement(Statement):
         val_str = str(self.value) if self.value else ""
         return f"{self.token_literal()} {str(self.name)} = {val_str};"
 
+class ConstStatement(Statement):
+    def __init__(self, token: Token, name: 'Identifier', value: Optional[Expression] = None):
+        self.token = token
+        self.name = name
+        self.value = value
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        val_str = str(self.value) if self.value else ""
+        return f"{self.token_literal()} {str(self.name)} = {val_str};"
+
+class AssignmentStatement(Statement):
+    def __init__(self, token: Token, name: 'Identifier', operator: str, value: Expression):
+        self.token = token
+        self.name = name
+        self.operator = operator
+        self.value = value
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f"{str(self.name)} {self.operator} {str(self.value)};"
+
+class IndexAssignmentStatement(Statement):
+    def __init__(self, token: Token, target: Expression, index: Expression, operator: str, value: Expression):
+        self.token = token
+        self.target = target
+        self.index = index
+        self.operator = operator
+        self.value = value
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f"{str(self.target)}[{str(self.index)}] {self.operator} {str(self.value)};"
+
 class ReturnStatement(Statement):
     def __init__(self, token: Token, return_value: Optional[Expression] = None):
         self.token = token
@@ -227,6 +267,16 @@ class BooleanLiteral(Expression):
 
     def __str__(self) -> str:
         return "އާން" if self.value else "ނޫން"
+
+class NullLiteral(Expression):
+    def __init__(self, token: Token):
+        self.token = token
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return "ހުސް"
 
 class ListLiteral(Expression):
     def __init__(self, token: Token, elements: List[Expression]):

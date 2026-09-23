@@ -13,15 +13,15 @@
 | Feature | Existing | Partial | Missing | Target |
 | :--- | :---: | :---: | :---: | :--- |
 | **Dhivehi / Thaana Syntax** | ✅ | | | Core language design with native Thaana characters |
-| **Dual English Keywords** | | 🟡 | | Uniform lexer mapping for English keywords (`if`, `let`, `fn`, etc.) |
+| **Dual English Keywords** | ✅ | | | Full lexer & parser mapping for English keywords (`if`, `let`, `fn`, `const`, etc.) |
 | **Unicode-First Identifiers** | ✅ | | | Support for Thaana, Latin, Arabic, and international scripts |
 | **Comments (Line & Block)** | ✅ | | | `//` single-line and `/* ... */` multi-line |
-| **Mutable Variables (`ކަނޑައަޅާ`)** | ✅ | | | Dynamic assignment and re-assignment |
-| **Constants / Immutable (`ދާއިމީ`)** | | | ❌ | Immutable variable declarations |
+| **Mutable Variables (`ކަނޑައަޅާ` / `let`)** | ✅ | | | Dynamic assignment, re-assignment, and compound assignment |
+| **Constants / Immutable (`ދާއިމީ` / `const`)** | ✅ | | | Immutable variable declarations with runtime protection |
 | **Multiple Assignment & Destructuring** | | | ❌ | `ކަނޑައަޅާ [a, b] = [1, 2]` |
 | **Static Type Annotations** | | | ❌ | Optional typing: `އުމުރު: Integer = 25` |
 | **Type Inference Engine** | | 🟡 | | Dynamic type inference at runtime; target static inference |
-| **First-Class Functions (`ވަޒީފާ`)** | ✅ | | | Lexical closures, higher-order functions, recursion |
+| **First-Class Functions (`ވަޒީފާ` / `fn`)** | ✅ | | | Lexical closures, higher-order functions, recursion |
 | **Default & Named Parameters** | | | ❌ | `ވަޒީފާ ހަދާ(ނަން, އުމުރު = 18)` |
 | **Variadic Arguments (`...args`)** | | | ❌ | Variable-length function argument lists |
 | **Anonymous Functions / Lambdas** | | 🟡 | | Target lightweight arrow syntax `(x) => x * 2` |
@@ -41,12 +41,12 @@
 | Feature | Existing | Partial | Missing | Target |
 | :--- | :---: | :---: | :---: | :--- |
 | **Arithmetic (`+`, `-`, `*`, `/`, `%`)** | ✅ | | | Standard numeric operations with Pratt parser |
-| **Exponentiation (`**`)** | | 🟡 | | `ބާރު()` available in stdlib; target infix `**` |
+| **Exponentiation (`**`)** | ✅ | | | Infix `**` with right-associativity and `ބާރު()` stdlib |
 | **Comparison (`==`, `!=`, `<`, `>`, `<=`, `>=`)** | ✅ | | | Value and identity equality |
-| **Logical (`އަދި` / `&&`, `ނުވަތަ` / `\|\|`, `!`)** | ✅ | | | Short-circuit evaluation |
-| **Bitwise (`&`, `\|`, `^`, `~`, `<<`, `>>`)** | | | ❌ | Low-level bitwise manipulation |
-| **Compound Assignment (`+=`, `-=`, etc.)** | | | ❌ | Shorthand inplace mutations |
-| **Null Coalescing (`??`)** | | | ❌ | Safe fallback for `ހުސް` (null) |
+| **Logical (`އަދި` / `&&` / `and`, `ނުވަތަ` / `\|\|` / `or`, `!` / `not`)** | ✅ | | | Short-circuit evaluation with dual keywords |
+| **Bitwise (`&`, `\|`, `^`, `~`, `<<`, `>>`)** | ✅ | | | Low-level bitwise manipulation |
+| **Compound Assignment (`+=`, `-=`, `*=`, `/=`, `%=`)** | ✅ | | | Inplace mutation on variables and collection indices |
+| **Null Coalescing (`??`)** | ✅ | | | Safe fallback for `ހުސް` / `null` with short-circuiting |
 | **Optional Chaining (`?.`)** | | | ❌ | Safe nested property traversal |
 | **Range Operator (`..`)** | | | ❌ | Range generation for loops: `1..10` |
 
@@ -58,7 +58,7 @@
 | :--- | :---: | :---: | :---: | :--- |
 | **Integers & Floats** | ✅ | | | `DhicodeNumber` (unified 64-bit precision) |
 | **Strings (UTF-8 Native)** | ✅ | | | Unicode strings with escape sequences |
-| **String Interpolation** | | | ❌ | `"މަރުޙަބާ {ނަން}"` |
+| **String Interpolation** | ✅ | | | `"މަރުޙަބާ {ނަން}"` runtime expressions inside strings |
 | **Booleans (`އާން` / `ނޫން`)** | ✅ | | | Native truthy/falsy evaluation |
 | **Null Type (`ހުސް`)** | ✅ | | | Native null representation |
 | **Dynamic Lists (`[...]`)** | ✅ | | | Indexing, negative indexing, append, pop, len |

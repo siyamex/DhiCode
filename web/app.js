@@ -51,31 +51,30 @@ if (btnTheme) {
 // 2. Syntax Highlighting Engine for DhiCode (Thaana & English)
 // =============================================================================
 const DHI_KEYWORDS = new Set([
-  // Core control & declaration keywords
-  "ކަނޑައަޅާ", "ބަހައްޓާ", "ވަޒީފާ", "ފަންކް", "ފޮނުވާ", "ދައްކާ", "ލިޔޭ",
+  // Core control & declaration keywords (Thaana)
+  "ކަނޑައަޅާ", "ބަހައްޓާ", "ދާއިމީ", "ވަޒީފާ", "ފަންކް", "ފޮނުވާ", "ދައްކާ", "ލިޔޭ",
   "ނަމަ", "ނޫންނަމަ", "ހިނދު", "ނިމުނީ", "ކޮންމެ", "ތެރޭގައި", "ގެނޭ",
-  "މަސައްކަތްކުރޭ", "ކުށެއް_ފެނިއްޖެނަމަ", "އުކާލާ", "ހުއްޓާ", "ކުރިއަށް"
+  "މަސައްކަތްކުރޭ", "ކުށެއް_ފެނިއްޖެނަމަ", "އުކާލާ", "ހުއްޓާ", "ކުރިއަށް",
+  // English keywords
+  "let", "var", "const", "fn", "func", "function", "return", "print",
+  "if", "else", "while", "end", "for", "in", "import", "try", "catch", "throw", "and", "or", "not"
 ]);
 
 const DHI_BOOLEANS = new Set([
-  "އާން", "ނޫން", "ބާޠިލް", "ހުސް"
+  "އާން", "ނޫން", "ބާޠިލް", "ހުސް", "true", "false", "null", "nil"
 ]);
 
 const DHI_BUILTINS = new Set([
   // Standard library functions & built-in tags
   "ދިގުމިން", "ބާވަތް", "އަޅާ", "ނަގާ", "ތަޅުދަނޑިތައް", "އަގުތައް", "އަހާ",
   "ޖަޒުރު", "ބާރު", "ކައިރި", "ތިރި", "މަތި", "ޕައި", "އިއްތިފާޤު",
-  "ވަކިކުރޭ", "ގުޅުވާ", "ބަދަލު", "ތެދު_އަދަދު", "ހުސްޖާގަ_ފޮހޭ", "ކުޑަކުރޭ", "ބޮޑުކުރޭ"
+  "ވަކިކުރޭ", "ގުޅުވާ", "ބަދަލު", "ތެދު_އަދަދު", "ހުސްޖާގަ_ފޮހޭ", "ކުޑަކުރޭ", "ބޮޑުކުރޭ",
+  // English aliases
+  "input", "len", "type", "append", "push", "pop", "keys", "values"
 ]);
 
 // Tokenizer regular expression
-// 1: Comments (single or multiline)
-// 2: Strings (double or single quoted)
-// 3: Numbers (integers or floats)
-// 4: Thaana & ASCII Identifiers (variables / keywords / builtins)
-// 5: Multi & single char operators
-// 6: Delimiters / Punctuation
-const TOKEN_REGEX = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+(?:\.\d+)?\b)|([\u0780-\u07BFa-zA-Z_][\u0780-\u07BFa-zA-Z0-9_]*)|(==|!=|<=|>=|&&|\|\||[=+\-*/%!<>&])|([()[\]{},;:])/gu;
+const TOKEN_REGEX = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+(?:\.\d+)?\b)|([\u0780-\u07BFa-zA-Z_][\u0780-\u07BFa-zA-Z0-9_]*)|(\*\*|\?\?|\+=|-=|\*=|\/=|%=|<<|>>|==|!=|<=|>=|&&|\|\||[=+\-*/%!<>&|^~])|([()[\]{},;:])/gu;
 
 function escapeHtml(str) {
   return str

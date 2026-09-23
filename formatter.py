@@ -4,15 +4,17 @@ import os
 import re
 
 BLOCK_OPENERS = {
-    "ވަޒީފާ", "ފަންކް", "ނަމަ", "ހިނދު", "ކޮންމެ", "މަސައްކަތްކުރޭ"
+    "ވަޒީފާ", "ފަންކް", "ނަމަ", "ހިނދު", "ކޮންމެ", "މަސައްކަތްކުރޭ",
+    "fn", "func", "function", "if", "while", "for", "try"
 }
 
 BLOCK_MIDDLES = {
-    "ނޫންނަމަ", "ކުށެއް_ފެނިއްޖެނަމަ"
+    "ނޫންނަމަ", "ކުށެއް_ފެނިއްޖެނަމަ",
+    "else", "catch"
 }
 
 BLOCK_CLOSERS = {
-    "ނިމުނީ"
+    "ނިމުނީ", "end"
 }
 
 def format_line_spacing(line: str) -> str:

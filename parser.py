@@ -4,39 +4,53 @@ from typing import List, Optional, Callable, Dict
 import token_types as tt
 from lexer import Lexer, Token
 from ast_nodes import (
-    Program, Statement, Expression, LetStatement, ReturnStatement,
+    Program, Statement, Expression, LetStatement, ConstStatement,
+    AssignmentStatement, IndexAssignmentStatement, ReturnStatement,
     PrintStatement, ExpressionStatement, BlockStatement, IfStatement,
     WhileStatement, ForInStatement, FunctionStatement, ImportStatement,
     TryCatchStatement, ThrowStatement, Identifier, NumberLiteral,
-    StringLiteral, BooleanLiteral, ListLiteral, DictLiteral,
+    StringLiteral, BooleanLiteral, NullLiteral, ListLiteral, DictLiteral,
     IndexExpression, PrefixExpression, InfixExpression, CallExpression
 )
 
 class Precedence(IntEnum):
     LOWEST = 1
-    LOGICAL = 2      # އަދި, ނުވަތަ
-    EQUALS = 3       # ==, !=
-    LESSGREATER = 4  # >, <, <=, >=
-    SUM = 5          # +, -
-    PRODUCT = 6      # *, /, %
-    PREFIX = 7       # -X, !X
-    CALL = 8         # func(X)
-    INDEX = 9        # array[index]
+    NULL_COALESCE = 2  # ??
+    LOGICAL = 3        # and, or, އަދި, ނުވަތަ
+    BITWISE_OR = 4     # |
+    BITWISE_XOR = 5    # ^
+    BITWISE_AND = 6    # &
+    EQUALS = 7         # ==, !=
+    LESSGREATER = 8    # >, <, <=, >=
+    BITWISE_SHIFT = 9  # <<, >>
+    SUM = 10           # +, -
+    PRODUCT = 11       # *, /, %
+    EXPONENT = 12      # **
+    PREFIX = 13        # -X, !X, ~X
+    CALL = 14          # func(X)
+    INDEX = 15         # array[index]
 
 PRECEDENCES: Dict[str, Precedence] = {
+    tt.TT_NULL_COALESCE: Precedence.NULL_COALESCE,
     tt.TT_AND: Precedence.LOGICAL,
     tt.TT_OR: Precedence.LOGICAL,
+    tt.TT_BIT_OR: Precedence.BITWISE_OR,
+    tt.TT_BIT_XOR: Precedence.BITWISE_XOR,
+    tt.TT_BIT_AND: Precedence.BITWISE_AND,
     tt.TT_EQ: Precedence.EQUALS,
     tt.TT_NOT_EQ: Precedence.EQUALS,
     tt.TT_LT: Precedence.LESSGREATER,
     tt.TT_GT: Precedence.LESSGREATER,
     tt.TT_LTE: Precedence.LESSGREATER,
     tt.TT_GTE: Precedence.LESSGREATER,
+    tt.TT_BIT_SHL: Precedence.BITWISE_SHIFT,
+    tt.TT_BIT_SHR: Precedence.BITWISE_SHIFT,
     tt.TT_PLUS: Precedence.SUM,
     tt.TT_MINUS: Precedence.SUM,
     tt.TT_ASTERISK: Precedence.PRODUCT,
     tt.TT_SLASH: Precedence.PRODUCT,
     tt.TT_MODULO: Precedence.PRODUCT,
+    tt.TT_EXPONENT: Precedence.EXPONENT,
     tt.TT_LPAREN: Precedence.CALL,
     tt.TT_LBRACKET: Precedence.INDEX,
 }
@@ -56,8 +70,10 @@ class Parser:
         self._register_prefix(tt.TT_STRING, self._parse_string_literal)
         self._register_prefix(tt.TT_TRUE, self._parse_boolean_literal)
         self._register_prefix(tt.TT_FALSE, self._parse_boolean_literal)
+        self._register_prefix(tt.TT_NULL, self._parse_null_literal)
         self._register_prefix(tt.TT_BANG, self._parse_prefix_expression)
         self._register_prefix(tt.TT_MINUS, self._parse_prefix_expression)
+        self._register_prefix(tt.TT_BIT_NOT, self._parse_prefix_expression)
         self._register_prefix(tt.TT_LPAREN, self._parse_grouped_expression)
         self._register_prefix(tt.TT_LBRACKET, self._parse_list_literal)
         self._register_prefix(tt.TT_LBRACE, self._parse_dict_literal)
@@ -67,6 +83,13 @@ class Parser:
         self._register_infix(tt.TT_SLASH, self._parse_infix_expression)
         self._register_infix(tt.TT_ASTERISK, self._parse_infix_expression)
         self._register_infix(tt.TT_MODULO, self._parse_infix_expression)
+        self._register_infix(tt.TT_EXPONENT, self._parse_infix_expression)
+        self._register_infix(tt.TT_NULL_COALESCE, self._parse_infix_expression)
+        self._register_infix(tt.TT_BIT_AND, self._parse_infix_expression)
+        self._register_infix(tt.TT_BIT_OR, self._parse_infix_expression)
+        self._register_infix(tt.TT_BIT_XOR, self._parse_infix_expression)
+        self._register_infix(tt.TT_BIT_SHL, self._parse_infix_expression)
+        self._register_infix(tt.TT_BIT_SHR, self._parse_infix_expression)
         self._register_infix(tt.TT_EQ, self._parse_infix_expression)
         self._register_infix(tt.TT_NOT_EQ, self._parse_infix_expression)
         self._register_infix(tt.TT_LT, self._parse_infix_expression)
@@ -127,6 +150,8 @@ class Parser:
     def parse_statement(self) -> Optional[Statement]:
         if self.cur_token_is(tt.TT_LET):
             return self.parse_let_statement()
+        elif self.cur_token_is(tt.TT_CONST):
+            return self.parse_const_statement()
         elif self.cur_token_is(tt.TT_RETURN):
             return self.parse_return_statement()
         elif self.cur_token_is(tt.TT_PRINT):
@@ -169,6 +194,23 @@ class Parser:
 
         return LetStatement(token, name, value)
 
+    def parse_const_statement(self) -> Optional[ConstStatement]:
+        token = self.cur_token
+        if not self.expect_peek(tt.TT_IDENTIFIER):
+            return None
+
+        name = Identifier(self.cur_token, self.cur_token.literal)
+        if not self.expect_peek(tt.TT_ASSIGN):
+            return None
+
+        self.next_token()
+        value = self.parse_expression(Precedence.LOWEST)
+
+        if self.peek_token_is(tt.TT_SEMICOLON):
+            self.next_token()
+
+        return ConstStatement(token, name, value)
+
     def parse_return_statement(self) -> Optional[ReturnStatement]:
         token = self.cur_token
         self.next_token()
@@ -192,9 +234,36 @@ class Parser:
 
         return PrintStatement(token, value)
 
-    def parse_expression_statement(self) -> Optional[ExpressionStatement]:
+    def parse_expression_statement(self) -> Optional[Statement]:
         token = self.cur_token
         expr = self.parse_expression(Precedence.LOWEST)
+        if expr is None:
+            return None
+
+        assignment_tokens = (
+            tt.TT_ASSIGN,
+            tt.TT_PLUS_ASSIGN,
+            tt.TT_MINUS_ASSIGN,
+            tt.TT_ASTERISK_ASSIGN,
+            tt.TT_SLASH_ASSIGN,
+            tt.TT_MODULO_ASSIGN,
+        )
+        if self.peek_token.type in assignment_tokens:
+            self.next_token()
+            op = self.cur_token.literal
+            self.next_token()
+            val = self.parse_expression(Precedence.LOWEST)
+            if self.peek_token_is(tt.TT_SEMICOLON):
+                self.next_token()
+
+            if isinstance(expr, Identifier):
+                return AssignmentStatement(token, expr, op, val)
+            elif isinstance(expr, IndexExpression):
+                return IndexAssignmentStatement(token, expr.left, expr.index, op, val)
+            else:
+                self.errors.append(f"Line {token.line}, Col {token.column}: އަގު ބަދަލު ނުކުރެވޭނެ އެއްޗެއް: {expr}")
+                return None
+
         if self.peek_token_is(tt.TT_SEMICOLON):
             self.next_token()
         return ExpressionStatement(token, expr)
@@ -428,6 +497,9 @@ class Parser:
     def _parse_boolean_literal(self) -> Expression:
         return BooleanLiteral(self.cur_token, self.cur_token_is(tt.TT_TRUE))
 
+    def _parse_null_literal(self) -> Expression:
+        return NullLiteral(self.cur_token)
+
     def _parse_list_literal(self) -> Optional[Expression]:
         token = self.cur_token
         elements: List[Expression] = []
@@ -506,7 +578,10 @@ class Parser:
         operator = token.literal
         precedence = self.cur_precedence()
         self.next_token()
-        right = self.parse_expression(precedence)
+        if token.type == tt.TT_EXPONENT:
+            right = self.parse_expression(precedence - 1)
+        else:
+            right = self.parse_expression(precedence)
         return InfixExpression(token, left, operator, right)
 
     def _parse_call_expression(self, function: Expression) -> Expression:

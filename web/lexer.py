@@ -13,8 +13,9 @@ class Token:
         return f"Token({self.type}, '{self.literal}', line={self.line}, col={self.column})"
 
 KEYWORDS = {
-    # Official keywords
+    # Official keywords (Thaana)
     "ކަނޑައަޅާ": tt.TT_LET,
+    "ދާއިމީ": tt.TT_CONST,
     "ވަޒީފާ": tt.TT_FUNCTION,
     "ފޮނުވާ": tt.TT_RETURN,
     "ދައްކާ": tt.TT_PRINT,
@@ -26,8 +27,10 @@ KEYWORDS = {
     "ނޫން": tt.TT_FALSE,
     "އަދި": tt.TT_AND,
     "ނުވަތަ": tt.TT_OR,
+    "ހުސް": tt.TT_NULL,
+    "ބާޠިލް": tt.TT_NULL,
 
-    # Advanced keywords
+    # Advanced keywords (Thaana)
     "ކޮންމެ": tt.TT_FOR,
     "ތެރޭގައި": tt.TT_IN,
     "ގެނޭ": tt.TT_IMPORT,
@@ -35,10 +38,37 @@ KEYWORDS = {
     "ކުށެއް_ފެނިއްޖެނަމަ": tt.TT_CATCH,
     "އުކާލާ": tt.TT_THROW,
 
-    # Compatibility keywords
+    # Compatibility keywords (Thaana)
     "ބަހައްޓާ": tt.TT_LET,
     "ފަންކް": tt.TT_FUNCTION,
     "ލިޔޭ": tt.TT_PRINT,
+
+    # English keywords (Dual-keyword support)
+    "let": tt.TT_LET,
+    "var": tt.TT_LET,
+    "const": tt.TT_CONST,
+    "fn": tt.TT_FUNCTION,
+    "func": tt.TT_FUNCTION,
+    "function": tt.TT_FUNCTION,
+    "return": tt.TT_RETURN,
+    "print": tt.TT_PRINT,
+    "if": tt.TT_IF,
+    "else": tt.TT_ELSE,
+    "while": tt.TT_WHILE,
+    "for": tt.TT_FOR,
+    "in": tt.TT_IN,
+    "end": tt.TT_END,
+    "true": tt.TT_TRUE,
+    "false": tt.TT_FALSE,
+    "null": tt.TT_NULL,
+    "nil": tt.TT_NULL,
+    "and": tt.TT_AND,
+    "or": tt.TT_OR,
+    "not": tt.TT_BANG,
+    "import": tt.TT_IMPORT,
+    "try": tt.TT_TRY,
+    "catch": tt.TT_CATCH,
+    "throw": tt.TT_THROW,
 }
 
 def is_thaana_char(char):
@@ -144,6 +174,8 @@ class Lexer:
                     chars.append('"')
                 elif self.ch == '\\':
                     chars.append('\\')
+                elif self.ch in ('{', '}'):
+                    chars.append('\\' + self.ch)
                 elif self.ch is not None:
                     chars.append(self.ch)
             else:
@@ -179,7 +211,7 @@ class Lexer:
         if self.ch == '"':
             return self._read_string()
 
-        # Multi-char operators
+        # Multi-char and single-char operators
         if self.ch == '=':
             if self._peek_char() == '=':
                 self._read_char()
@@ -195,36 +227,95 @@ class Lexer:
             self._read_char()
             return Token(tt.TT_BANG, "!", self.line, col)
         elif self.ch == '<':
-            if self._peek_char() == '=':
+            if self._peek_char() == '<':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_BIT_SHL, "<<", self.line, col)
+            elif self._peek_char() == '=':
                 self._read_char()
                 self._read_char()
                 return Token(tt.TT_LTE, "<=", self.line, col)
             self._read_char()
             return Token(tt.TT_LT, "<", self.line, col)
         elif self.ch == '>':
-            if self._peek_char() == '=':
+            if self._peek_char() == '>':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_BIT_SHR, ">>", self.line, col)
+            elif self._peek_char() == '=':
                 self._read_char()
                 self._read_char()
                 return Token(tt.TT_GTE, ">=", self.line, col)
             self._read_char()
             return Token(tt.TT_GT, ">", self.line, col)
-
-        # Single-character tokens & Delimiters
         elif self.ch == '+':
+            if self._peek_char() == '=':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_PLUS_ASSIGN, "+=", self.line, col)
             self._read_char()
             return Token(tt.TT_PLUS, "+", self.line, col)
         elif self.ch == '-':
+            if self._peek_char() == '=':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_MINUS_ASSIGN, "-=", self.line, col)
             self._read_char()
             return Token(tt.TT_MINUS, "-", self.line, col)
         elif self.ch == '*':
+            if self._peek_char() == '*':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_EXPONENT, "**", self.line, col)
+            elif self._peek_char() == '=':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_ASTERISK_ASSIGN, "*=", self.line, col)
             self._read_char()
             return Token(tt.TT_ASTERISK, "*", self.line, col)
         elif self.ch == '/':
+            if self._peek_char() == '=':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_SLASH_ASSIGN, "/=", self.line, col)
             self._read_char()
             return Token(tt.TT_SLASH, "/", self.line, col)
         elif self.ch == '%':
+            if self._peek_char() == '=':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_MODULO_ASSIGN, "%=", self.line, col)
             self._read_char()
             return Token(tt.TT_MODULO, "%", self.line, col)
+        elif self.ch == '?':
+            if self._peek_char() == '?':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_NULL_COALESCE, "??", self.line, col)
+            self._read_char()
+            return Token(tt.TT_ILLEGAL, "?", self.line, col)
+        elif self.ch == '&':
+            if self._peek_char() == '&':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_AND, "&&", self.line, col)
+            self._read_char()
+            return Token(tt.TT_BIT_AND, "&", self.line, col)
+        elif self.ch == '|':
+            if self._peek_char() == '|':
+                self._read_char()
+                self._read_char()
+                return Token(tt.TT_OR, "||", self.line, col)
+            self._read_char()
+            return Token(tt.TT_BIT_OR, "|", self.line, col)
+        elif self.ch == '^':
+            self._read_char()
+            return Token(tt.TT_BIT_XOR, "^", self.line, col)
+        elif self.ch == '~':
+            self._read_char()
+            return Token(tt.TT_BIT_NOT, "~", self.line, col)
+
+        # Single-character tokens & Delimiters
         elif self.ch == '(':
             self._read_char()
             return Token(tt.TT_LPAREN, "(", self.line, col)
