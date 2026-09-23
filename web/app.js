@@ -52,12 +52,14 @@ if (btnTheme) {
 // =============================================================================
 const DHI_KEYWORDS = new Set([
   // Core control & declaration keywords (Thaana)
-  "ކަނޑައަޅާ", "ބަހައްޓާ", "ދާއިމީ", "ވަޒީފާ", "ފަންކް", "ފޮނުވާ", "ދައްކާ", "ލިޔޭ",
+  "ކަނޑައަޅާ", "ބަހައްޓާ", "ދާއިމީ", "ވަޒީފާ", "ފަންކް", "ފޮނުވާ", "އަނބުރާ", "ދައްކާ", "ލިޔޭ",
   "ނަމަ", "ނޫންނަމަ", "ހިނދު", "ނިމުނީ", "ކޮންމެ", "ތެރޭގައި", "ގެނޭ",
   "މަސައްކަތްކުރޭ", "ކުށެއް_ފެނިއްޖެނަމަ", "އުކާލާ", "ހުއްޓާ", "ކުރިއަށް",
+  "ކްލާސް", "ދަރިކޮޅު", "މި",
   // English keywords
   "let", "var", "const", "fn", "func", "function", "return", "print",
-  "if", "else", "while", "end", "for", "in", "import", "try", "catch", "throw", "and", "or", "not"
+  "if", "else", "while", "end", "for", "in", "import", "try", "catch", "throw", "and", "or", "not",
+  "class", "extends", "this", "self"
 ]);
 
 const DHI_BOOLEANS = new Set([
@@ -68,9 +70,14 @@ const DHI_BUILTINS = new Set([
   // Standard library functions & built-in tags
   "ދިގުމިން", "ބާވަތް", "އަޅާ", "ނަގާ", "ތަޅުދަނޑިތައް", "އަގުތައް", "އަހާ",
   "ޖަޒުރު", "ބާރު", "ކައިރި", "ތިރި", "މަތި", "ޕައި", "އިއްތިފާޤު",
+  "ހުޅުވާ", "ގުޅާ", "ސާވަރު", "ރައުޓަރ_ހަދާ", "ރައުޓަރ", "ޖޭސަން_ޖަވާބު", "އެޗްޓީއެމްއެލް_ޖަވާބު", "ލިޔުން_ޖަވާބު",
+  "މިއަދުގެ_ނަކަތް", "ނަކަތް_ހޯދާ", "މިއަދުގެ_ވަގުތު", "ދެން_އޮތް_ނަމާދު", "އަދަދު_ބަހަށް", "ތާނަ_ތަރުތީބު",
   "ވަކިކުރޭ", "ގުޅުވާ", "ބަދަލު", "ތެދު_އަދަދު", "ހުސްޖާގަ_ފޮހޭ", "ކުޑަކުރޭ", "ބޮޑުކުރޭ",
+  "ޝާ256", "ބޭސް64_އެންކޯޑު", "ބޭސް64_ޑީކޯޑު", "ދިމާވޭތޯ",
   // English aliases
-  "input", "len", "type", "append", "push", "pop", "keys", "values"
+  "input", "len", "type", "append", "push", "pop", "keys", "values",
+  "open", "serve", "create_router", "response_json", "response_html", "response_text",
+  "sha256", "base64_encode", "base64_decode", "match", "replace", "search"
 ]);
 
 // Tokenizer regular expression

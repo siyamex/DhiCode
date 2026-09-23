@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- ==================== Primary SEO & Metadata ==================== -->
-  <title>DhiCode (ދިވެހި ކޯޑު) | ދިވެހި ބަހުން ކޯޑުކުރާ ޕްރޮގްރާމިންގ ލެންގުއޭޖް</title>
-  <meta name="title" content="DhiCode (ދިވެހި ކޯޑު) | ދިވެހި ބަހުން ކޯޑުކުރާ ޕްރޮގްރާމިންގ ލެންގުއޭޖް">
-  <meta name="description" content="DhiCode is a modern, expressive programming language designed for native Dhivehi (Thaana) speakers. Features an in-browser WebAssembly playground, Python interpreter, LLVM native compiler, and official VS Code extension.">
-  <meta name="keywords" content="DhiCode, Dhivehi programming language, Thaana code, Maldives programming, ދިވެހި ކޯޑު, ތާނަ, ދިވެހިބަސް, ދިވެހިރާއްޖެ, programming in thaana">
+  <title>DhiCode (ދިވެހި ކޯޑު) | ޒަމާނީ ދިވެހި ޕްރޮގްރާމިންގ ލެންގުއޭޖް (v0.4.0)</title>
+  <meta name="title" content="DhiCode (ދިވެހި ކޯޑު) | ޒަމާނީ ދިވެހި ޕްރޮގްރާމިންގ ލެންގުއޭޖް (v0.4.0)">
+  <meta name="description" content="DhiCode is a modern, general-purpose programming language designed for native Dhivehi (Thaana) and English speakers. Features an in-browser WebAssembly playground, OOP classes, embedded SQLite database, native HTTP server, and Maldivian cultural computing.">
+  <meta name="keywords" content="DhiCode, Dhivehi programming language, Thaana code, Maldives programming, ދިވެހި ކޯޑު, ތާނަ, ދިވެހިބަސް, ދިވެހިރާއްޖެ, programming in thaana, SQLite Dhivehi, HTTP server Dhivehi">
   <meta name="author" content="siyamex">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://siyamex.github.io/DhiCode/">
@@ -20,7 +20,7 @@
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://siyamex.github.io/DhiCode/">
   <meta property="og:title" content="DhiCode (ދިވެހި ކޯޑު) - Modern Dhivehi Programming Language">
-  <meta property="og:description" content="A modern, expressive programming language designed for native Dhivehi (Thaana) speakers with WebAssembly playground and LLVM native compiler.">
+  <meta property="og:description" content="A modern general-purpose programming language in Dhivehi (Thaana) and English. Includes OOP, embedded SQLite, HTTP web server, and WebAssembly playground!">
   <meta property="og:image" content="https://siyamex.github.io/DhiCode/social-card.svg">
   <meta property="og:locale" content="dv_MV">
   <meta property="og:site_name" content="DhiCode">
@@ -39,6 +39,7 @@
     "@type": "SoftwareApplication",
     "name": "DhiCode",
     "alternateName": "ދިވެހި ކޯޑު",
+    "softwareVersion": "0.4.0",
     "operatingSystem": "Cross-platform (Windows, macOS, Linux, Web)",
     "applicationCategory": "DeveloperApplication",
     "programmingLanguage": "Dhivehi / Thaana",
@@ -48,7 +49,7 @@
       "name": "siyamex",
       "url": "https://github.com/siyamex"
     },
-    "description": "An expressive, native programming language designed for Dhivehi (Thaana) speakers, featuring an interactive WebAssembly playground, Python tree-walk interpreter, LLVM native compiler, and VS Code extension.",
+    "description": "An expressive, native programming language designed for Dhivehi (Thaana) speakers, featuring an interactive WebAssembly playground, Python tree-walk interpreter, LLVM native compiler, embedded SQLite database, HTTP web server, and VS Code extension.",
     "license": "https://creativecommons.org/publicdomain/zero/1.0/"
   }
   </script>
@@ -73,12 +74,14 @@
         <span class="flag">🇲🇻</span>
         <span class="en-name">DhiCode</span>
         <span class="dv-name">ދިވެހި ކޯޑު</span>
+        <span class="badge-cat" style="color: var(--primary); font-family: var(--font-mono); font-size: 0.75rem;">v0.4.0</span>
       </div>
 
       <ul class="nav-links">
         <li><a href="tutorial.html" style="color: var(--primary); font-weight: 700;">🎓 އެކަޑަމީ (Tutorial)</a></li>
         <li><a href="#playground">ޕްލޭގްރައުންޑް</a></li>
         <li><a href="#features">ޚާއްޞަ ސިފަތައް</a></li>
+        <li><a href="#syntax">ސިންޓެކްސް</a></li>
         <li><a href="#keywords">ކީވޯޑުތައް</a></li>
         <li><a href="https://github.com/siyamex/DhiCode#readme" target="_blank">ލިޔުންތައް (Docs)</a></li>
       </ul>
@@ -104,23 +107,26 @@
   <header class="hero-section">
     <div class="container">
       <div class="hero-pill">
-        ✨ ދިވެހި ބަހުގެ ފުރަތަމަ ޒަމާނީ ޕްރޮގްރާމިންގ ލެންގުއޭޖް
+        ✨ DhiCode v0.4.0 • ޒަމާނީ ބެކްއެންޑާއި، އެސްކިއުއެލް ޑޭޓާބޭސް އަދި ކްލާސްތައް
       </div>
 
       <h1 class="hero-title">
-        ދިވެހި ބަހުން <span class="text-gradient">ކޯޑުކުރަމާ</span>
+        ދިވެހި ބަހުން <span class="text-gradient">ކޯޑުކުރުމުގެ އައު ޒަމާން</span>
       </h1>
 
       <p class="hero-subtitle">
-        ތާނަ އަކުރުން ކޯޑު ލިޔުމަށް ފަރުމާކުރެވިފައިވާ، އިންޓަރޕްރެޓަރާއި، އެލް.އެލް.ވީ.އެމް (LLVM) ނޭޓިވް ކޮމްޕައިލަރާއި، ވީއެސް ކޯޑު އެކްސްޓެންޝަން އެކުލެވިގެންވާ ޒަމާނީ ޕްރޮގްރާމިންގ ލެންގުއޭޖް.
+        ތާނަ އަކުރާއި އިނގިރޭސި ސިންޓެކްސް އެކުލެވިގެންވާ، ޒަމާނީ އޮބްޖެކްޓް-އޮރިއެންޓެޑް، އެމްބެޑެޑް އެސްކިއުއެލް ޑޭޓާބޭސް، އަދި ނޭޓިވް އެޗްޓީޓީޕީ ސާވަރު އެކުލެވޭ ފުރިހަމަ ޕްރޮގްރާމިންގ ލެންގުއޭޖް.
       </p>
 
       <div class="hero-cta">
         <a href="#playground" class="btn btn-primary" style="font-size: 1.05rem; padding: 12px 28px;">
-          ▶ ވަގުތުން ޓެސްޓުކޮށްލާ (Live IDE)
+          ▶ ވަގުތުން ޓެސްޓުކޮށްލާ (Live Playground)
+        </a>
+        <a href="tutorial.html" class="btn btn-secondary" style="font-size: 1.05rem; padding: 12px 28px; border-color: var(--primary); color: var(--primary);">
+          🎓 ދިވެހި ކޯޑު އެކަޑަމީ
         </a>
         <a href="https://github.com/siyamex/DhiCode" target="_blank" class="btn btn-secondary" style="font-size: 1.05rem; padding: 12px 28px;">
-          📦 ޑައުންލޯޑް / GitHub
+          📦 GitHub Repository
         </a>
       </div>
 
@@ -129,6 +135,26 @@
         <span class="prompt">$</span>
         <span id="quick-cmd">git clone https://github.com/siyamex/DhiCode.git &amp;&amp; python dhicode.py run main.dhi</span>
         <button id="btn-copy-cmd" title="ކޮޕީކުރޭ">📋</button>
+      </div>
+
+      <!-- Hero Metrics Ribbon -->
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-num">76 / 76</span>
+          <span class="stat-label">ޔުނިޓް ޓެސްޓް (100% ފާސް)</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">10+</span>
+          <span class="stat-label">ބިލްޓް-އިން މޮޑިއުލްތައް</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">0</span>
+          <span class="stat-label">ޑިޕެންޑެންސީ (Zero Deps)</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">Wasm</span>
+          <span class="stat-label">ވެބްއެސެމްބްލީ ރެޑީ</span>
+        </div>
       </div>
     </div>
   </header>
@@ -148,12 +174,13 @@
             <button class="ide-tab active" data-example="hello">1. މަރުޙަބާ</button>
             <button class="ide-tab" data-example="lists">2. ލިސްޓާއި ލޫޕް</button>
             <button class="ide-tab" data-example="dict">3. ރަދީފު</button>
-            <button class="ide-tab" data-example="factorial">4. ފެކްޓޯރިއަލް</button>
-            <button class="ide-tab" data-example="math">5. ހިސާބު</button>
-            <button class="ide-tab" data-example="trycatch">6. ކުށް ސަލާމަތް</button>
+            <button class="ide-tab" data-example="oop">4. ކްލާސްތައް (OOP)</button>
+            <button class="ide-tab" data-example="db">5. ޑޭޓާބޭސް (SQLite)</button>
+            <button class="ide-tab" data-example="server">6. ސާވަރު (HTTP API)</button>
             <button class="ide-tab" data-example="cultural">7. ނަކަތާއި ނަމާދު</button>
             <button class="ide-tab" data-example="thaana">8. ތާނަ ހިސާބު</button>
-            <button class="ide-tab" data-example="database">9. ޑޭޓާބޭސް</button>
+            <button class="ide-tab" data-example="crypto">9. ކްރިޕްޓޯ &amp; ރެގެކްސް</button>
+            <button class="ide-tab" data-example="trycatch">10. ކުށް ސަލާމަތް</button>
           </div>
 
           <div class="ide-actions">
@@ -204,7 +231,132 @@
         <!-- Footer Info Bar -->
         <div class="ide-footer-bar">
           <span>ފޮންޓް: Faruma / Faseyha / Noto Sans Thaana</span>
-          <span>WebAssembly Powered Runtime</span>
+          <span>WebAssembly Powered Runtime v0.4.0</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dual-Syntax Comparison Showcase -->
+  <section class="syntax-showcase-section" id="syntax">
+    <div class="container">
+      <div class="section-header">
+        <h2>ދެ ސިންޓެކްސް، އެއް ބާރު</h2>
+        <p>ދިވެހި ތާނަ އަކުރުން ނުވަތަ އިނގިރޭސި ޓެކްނިކަލް ކީވޯޑުތަކުން ކޯޑު ލިޔުއްވާ! ދެ ބަސްވެސް ހިނގަނީ އެއް ހަމައެއްގައެވެ.</p>
+      </div>
+
+      <div class="syntax-comparison-card">
+        <div class="syntax-header">
+          <div class="syntax-tabs-group" id="syntax-tabs">
+            <button class="syntax-tab-btn active" data-snippet="db">🗄️ އެސްކިއުއެލް ޑޭޓާބޭސް</button>
+            <button class="syntax-tab-btn" data-snippet="oop">🏛️ ކްލާސްތަކާއި އޮބްޖެކްޓް</button>
+            <button class="syntax-tab-btn" data-snippet="server">🚀 ވެބް ސާވަރާއި އޭޕީއައި</button>
+          </div>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">Symmetrical Dual-Language Engine</span>
+        </div>
+
+        <!-- Snippet 1: Database -->
+        <div class="syntax-grid" id="snippet-db">
+          <div class="syntax-panel">
+            <div class="syntax-panel-title">🇲🇻 ދިވެހި ބަސް (Thaana Syntax)</div>
+            <pre class="syntax-pre"><code>// SQLite Database in Thaana
+ގެނޭ "ޑޭޓާބޭސް"
+ކަނޑައަޅާ ޑީބީ = ހުޅުވާ("app.db")
+
+ޑީބީ.ހިންގާ("CREATE TABLE users (id INT, name TEXT);")
+ޑީބީ.ހިންގާ("INSERT INTO users VALUES (?, ?);", [1, "ޢަލީ"])
+
+ކަނޑައަޅާ މީހުން = ޑީބީ.ހޯދާ("SELECT * FROM users;")
+ދައްކާ "ނަން:", މީހުން[0].name
+ޑީބީ.ލައްޕާ()</code></pre>
+          </div>
+          <div class="syntax-panel" dir="ltr" style="text-align: left;">
+            <div class="syntax-panel-title">🌐 English Technical Syntax</div>
+            <pre class="syntax-pre"><code>// SQLite Database in English
+import "db";
+let db = open("app.db");
+
+db.execute("CREATE TABLE users (id INT, name TEXT);");
+db.execute("INSERT INTO users VALUES (?, ?);", [1, "Ali"]);
+
+let users = db.query("SELECT * FROM users;");
+print("Name:", users[0].name);
+db.close();</code></pre>
+          </div>
+        </div>
+
+        <!-- Snippet 2: OOP -->
+        <div class="syntax-grid" id="snippet-oop" style="display: none;">
+          <div class="syntax-panel">
+            <div class="syntax-panel-title">🇲🇻 ދިވެހި ބަސް (Thaana Syntax)</div>
+            <pre class="syntax-pre"><code>// OOP Classes &amp; Inheritance
+ކްލާސް އުޅަނދު
+    ވަޒީފާ ހަދާ_ވަޒީފާ(ނަން)
+        މި.ނަން = ނަން
+    ނިމުނީ
+ނިމުނީ
+
+ކްލާސް ކާރު ދަރިކޮޅު އުޅަނދު
+    ވަޒީފާ ދުއްވާ()
+        އަނބުރާ މި.ނަން + " ދުއްވަނީ"
+    ނިމުނީ
+ނިމުނީ
+
+ކަނޑައަޅާ ސައިކަލް = ކާރު("ވެހިކަލް")
+ދައްކާ ސައިކަލް.ދުއްވާ()</code></pre>
+          </div>
+          <div class="syntax-panel" dir="ltr" style="text-align: left;">
+            <div class="syntax-panel-title">🌐 English Technical Syntax</div>
+            <pre class="syntax-pre"><code>// OOP Classes &amp; Inheritance
+class Vehicle {
+    fn constructor(name) {
+        this.name = name;
+    }
+}
+
+class Car extends Vehicle {
+    fn drive() {
+        return this.name + " is driving";
+    }
+}
+
+let my_car = Car("Vehicle");
+print(my_car.drive());</code></pre>
+          </div>
+        </div>
+
+        <!-- Snippet 3: HTTP Server -->
+        <div class="syntax-grid" id="snippet-server" style="display: none;">
+          <div class="syntax-panel">
+            <div class="syntax-panel-title">🇲🇻 ދިވެހި ބަސް (Thaana Syntax)</div>
+            <pre class="syntax-pre"><code>// Micro HTTP Web API
+ގެނޭ "ނެޓްވޯކް"
+
+ކަނޑައަޅާ ރައުޓަރ = ރައުޓަރ_ހަދާ()
+ރައުޓަރ.ނަގާ("/api/hello", ވަޒީފާ(އެދުން) {
+    އަނބުރާ ޖޭސަން_ޖަވާބު({
+        "status": 200,
+        "message": "މަރުޙަބާ!"
+    })
+})
+
+ކަނޑައަޅާ ސާވަރު = ސާވަރު(8080, ރައުޓަރ)</code></pre>
+          </div>
+          <div class="syntax-panel" dir="ltr" style="text-align: left;">
+            <div class="syntax-panel-title">🌐 English Technical Syntax</div>
+            <pre class="syntax-pre"><code>// Micro HTTP Web API
+import "net";
+
+let router = create_router();
+router.get("/api/hello", fn(req) {
+    return response_json({
+        "status": 200,
+        "message": "Welcome!"
+    });
+});
+
+let server = serve(8080, router);</code></pre>
+          </div>
         </div>
       </div>
     </div>
@@ -215,7 +367,7 @@
     <div class="container">
       <div class="section-header">
         <h2>ކީއްވެ DhiCode؟</h2>
-        <p>ދިވެހި ބަހުން ޕްރޮގްރާމްކުރުމަށް ފަރުމާކުރެވިފައިވާ އެންމެ ފުރިހަމަ ވަޞީލަތްތައް</p>
+        <p>ދިވެހި ބަހުން ޒަމާނީ ސޮފްޓްވެއަރ ތައްޔާރުކުރުމަށް ފަރުމާކުރެވިފައިވާ ބާރުގަދަ ވަޞީލަތްތައް</p>
       </div>
 
       <div class="bento-grid">
@@ -224,45 +376,65 @@
           <span class="card-icon">🇲🇻</span>
           <h3>ދިވެހި ބަހުގެ ފުރިހަމަ ތާނަ އަކުރުގެ ބާރު</h3>
           <p>
-            ތާނަ އަކުރުތަކާއި، ފިލިތައް (Fili) އަދި ސުކުން ފަސޭހަކަމާއެކު ދެނެގަނެވޭނެހެން ލެކްސަރ އާއި ޕާސަރ ވަނީ ތައްޔާރުކުރެވިފައި. ފަރުމާ (Faruma) އަދި ފަސޭހަ (Faseyha) ފޮންޓުގައި ފުރިހަމައަށް އެޅޭނެ.
+            ތާނަ އަކުރުތަކާއި، ފިލިތައް (Fili) އަދި ސުކުން ފަސޭހަކަމާއެކު ދެނެގަނެވޭނެހެން ލެކްސަރ އާއި ޕާސަރ ވަނީ ތައްޔާރުކުރެވިފައި. ފަރުމާ (Faruma) އަދި ފަސޭހަ (Faseyha) ފޮންޓުގައި އަކުރު ނުގިރޭނެހެން ފަރުމާކުރެވިފައިވާ ސާފު ކޯޑިންގ.
           </p>
         </div>
 
         <!-- Card 2 -->
         <div class="bento-card">
-          <span class="card-icon">⚡</span>
-          <h3>ދެ އިންޖީނުގެ ބާރު (Dual Engine)</h3>
+          <span class="card-icon">🏛️</span>
+          <h3>އޮބްޖެކްޓް-އޮރިއެންޓެޑް ޕްރޮގްރާމިންގ</h3>
           <p>
-            ވަގުތުން ސްކްރިޕްޓް ހިންގާލުމަށް ޕައިތަން އިންޓަރޕްރެޓަރ، އަދި ހަލުވި ނޭޓިވް ބައިނަރީ (.o / .exe) އުފެއްދުމަށް އެލް.އެލް.ވީ.އެމް (LLVM) ބެކްއެންޑް.
+            ކްލާސްތައް (`class` / `ކްލާސް`)، ދަރިކޮޅު ނެގުން (`extends` / `ދަރިކޮޅު`)، ކޮންސްޓްރަކްޓަރު، މެތަޑްތައް އަދި `this` / `މި` ގެ ފުރިހަމަ އެހީތެރިކަން.
           </p>
         </div>
 
         <!-- Card 3 -->
         <div class="bento-card">
-          <span class="card-icon">📊</span>
-          <h3>ލިސްޓާއި ރަދީފު (Lists &amp; Dicts)</h3>
+          <span class="card-icon">🗄️</span>
+          <h3>އެމްބެޑެޑް އެސްކިއުއެލް ޑޭޓާބޭސް</h3>
           <p>
-            ލިސްޓު ހެދުމާއި، އިންޑެކްސް ކުރުން، އަޅާ() އަދި ނަގާ() ފަންކްޝަންތައް، ރަދީފު (Dictionary) އަދި ކޮންމެ (For-Each) ލޫޕް.
+            އެއްވެސް ބޭރުގެ ޕެކޭޖަކާ ނުލައި ސީދާ އެސްކިއުއެލް (`db` / `ޑޭޓާބޭސް`) ހިންގުން. ޕެރާމީޓަރު ބައިންޑިންގ (`?`)، ޓްރާންސެކްޝަން ރޯލްބެކާއި ކޮމިޓް.
           </p>
         </div>
 
         <!-- Card 4 -->
         <div class="bento-card">
-          <span class="card-icon">🛡️</span>
-          <h3>ކުށް ސަލާމަތްކުރުން (Try/Catch)</h3>
+          <span class="card-icon">🚀</span>
+          <h3>ނޭޓިވް އެޗްޓީޓީޕީ ސާވަރާއި ރައުޓަރ</h3>
           <p>
-            ޕްރޮގްރާމް ނުހުއްޓި ކުރިއަށް ގެންދިއުމަށް މަސައްކަތްކުރޭ ... ކުށެއް_ފެނިއްޖެނަމަ ބްލޮކްތައް އަދި ތަފްޞީލީ ވިޝުއަލް ކުށުގެ ރިޕޯޓު.
+            ވެބް އޭޕީއައި (`net.serve` / `ސާވަރު`) ހެދުމާއި، މައިކްރޯ ރައުޓަރ، ކުއަރީ ޕެރާމީޓަރުތައް ކިޔުމާއި، ޖޭސަން އަދި އެޗްޓީއެމްއެލް ޖަވާބު ފޮނުވުން.
           </p>
         </div>
 
         <!-- Card 5 -->
         <div class="bento-card">
-          <span class="card-icon">🧩</span>
-          <h3>ވީއެސް ކޯޑު އެކްސްޓެންޝަން (VS Code)</h3>
+          <span class="card-icon">🌙</span>
+          <h3>ދިވެހި ޘަޤާފީ ކޮމްޕިއުޓިންގ</h3>
           <p>
-            ކޯޑު ކުލަގަދަކޮށް ދައްކައިދޭ ސިންޓެކްސް ހައިލައިޓިންގ، އޮޓޯ-ކްލޯސިންގ ބްރެކެޓްތައް، އަދި އަވަހަށް ކޯޑު ލިޔުމަށް ޚާއްޞަ ސްނިޕެޓްތައް.
+            27 ނަކަތް (`ނަކަތް`)، މޫސުމުގެ މަޢުލޫމާތު، ރާއްޖޭގެ ހުރިހާ އަތޮޅަކަށް ސީދާ ސޯލަރ ނަމާދު ވަގުތު (`ނަމާދު`)، އަދި އަދަދު ބަހަށް ބަދަލުކުރުމާއި ތާނަ ތަރުތީބު (`ތާނަ`).
           </p>
         </div>
+
+        <!-- Card 6 -->
+        <div class="bento-card">
+          <span class="card-icon">🔒</span>
+          <h3>ކްރިޕްޓޯގްރަފީ، ރެގެކްސް އަދި ފައިލް</h3>
+          <p>
+            SHA-256، SHA-512، HMAC، Base64، ޔުނިކޯޑު ރެގިއުލަރ އެކްސްޕްރެޝަންތައް (`ރެގެކްސް`) އަދި ފައިލް ކިޔުމާއި ލިޔުމުގެ ބިލްޓް-އިން ވަޞީލަތްތައް.
+          </p>
+        </div>
+      </div>
+
+      <!-- Academy Banner Callout -->
+      <div class="academy-banner">
+        <div class="academy-banner-content">
+          <h3>🎓 ދިވެހި ކޯޑު އެކަޑަމީން ޕްރޮގްރާމްކުރަން ދަސްކުރައްވާ!</h3>
+          <p>ފިޔަވަޅަކުން ފިޔަވަޅަކަށް ދިވެހި ބަހުން ޕްރޮގްރާމިންގ ދަސްކޮށްދޭ އިންޓަރެކްޓިވް ކޯސް. ބްރައުޒަރ ތެރޭގައި ޗެލެންޖްތައް ފުރިހަމަކޮށް ވަގުތުން ސެޓްފިކޭޓް ހޯއްދަވާ!</p>
+        </div>
+        <a href="tutorial.html" class="btn btn-primary" style="font-size: 1.05rem; padding: 12px 28px; white-space: nowrap;">
+          🚀 އެކަޑަމީ ފައްޓަވާ
+        </a>
       </div>
     </div>
   </section>
@@ -271,8 +443,8 @@
   <section class="keywords-section" id="keywords">
     <div class="container">
       <div class="section-header">
-        <h2>ކީވޯޑުތަކުގެ ގައިޑް</h2>
-        <p>ދިވެހި ކޯޑުގައި ބޭނުންކުރާ މައިގަނޑު ބަސްތައް</p>
+        <h2>ކީވޯޑުތަކާއި މޮޑިއުލްތަކުގެ ގައިޑް</h2>
+        <p>ދިވެހި ކޯޑުގައި ބޭނުންކުރާ މައިގަނޑު ބަސްތަކާއި ފަންކްޝަންތައް</p>
       </div>
 
       <div class="keywords-table-card">
@@ -293,16 +465,40 @@
               <td><code>ކަނޑައަޅާ އަގު = 50</code></td>
             </tr>
             <tr>
-              <td><span class="badge-kw">ވަޒީފާ</span></td>
-              <td>function</td>
-              <td><span class="badge-cat">ފަންކްޝަން</span></td>
-              <td><code>ވަޒީފާ ހިސާބު() ... ނިމުނީ</code></td>
+              <td><span class="badge-kw">ދާއިމީ</span></td>
+              <td>const</td>
+              <td><span class="badge-cat">ދާއިމީ އަގު</span></td>
+              <td><code>ދާއިމީ ޕައި = 3.14159</code></td>
             </tr>
             <tr>
-              <td><span class="badge-kw">ފޮނުވާ</span></td>
+              <td><span class="badge-kw">ވަޒީފާ</span></td>
+              <td>fn / function</td>
+              <td><span class="badge-cat">ފަންކްޝަން</span></td>
+              <td><code>ވަޒީފާ ގުނާ(x) ... ނިމުނީ</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">އަނބުރާ / ފޮނުވާ</span></td>
               <td>return</td>
               <td><span class="badge-cat">ފަންކްޝަން</span></td>
-              <td><code>ފޮނުވާ ނަތީޖާ</code></td>
+              <td><code>އަނބުރާ ނަތީޖާ</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">ކްލާސް</span></td>
+              <td>class</td>
+              <td><span class="badge-cat">އޮބްޖެކްޓް</span></td>
+              <td><code>ކްލާސް ދަރިވަރު ... ނިމުނީ</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">ދަރިކޮޅު</span></td>
+              <td>extends</td>
+              <td><span class="badge-cat">އޮބްޖެކްޓް</span></td>
+              <td><code>ކްލާސް ޑޮކްޓަރު ދަރިކޮޅު އިންސާނާ</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">މި</span></td>
+              <td>this / self</td>
+              <td><span class="badge-cat">އޮބްޖެކްޓް</span></td>
+              <td><code>މި.ނަން = ނަން</code></td>
             </tr>
             <tr>
               <td><span class="badge-kw">ދައްކާ</span></td>
@@ -311,16 +507,10 @@
               <td><code>ދައްކާ "ސަލާމް"</code></td>
             </tr>
             <tr>
-              <td><span class="badge-kw">ނަމަ</span></td>
-              <td>if</td>
+              <td><span class="badge-kw">ނަމަ / ނޫންނަމަ</span></td>
+              <td>if / else</td>
               <td><span class="badge-cat">ޝަރުޠު</span></td>
               <td><code>ނަމަ އުމުރު &gt; 18 ... ނިމުނީ</code></td>
-            </tr>
-            <tr>
-              <td><span class="badge-kw">ނޫންނަމަ</span></td>
-              <td>else</td>
-              <td><span class="badge-cat">ޝަރުޠު</span></td>
-              <td><code>ނޫންނަމަ ... ނިމުނީ</code></td>
             </tr>
             <tr>
               <td><span class="badge-kw">ހިނދު</span></td>
@@ -329,8 +519,8 @@
               <td><code>ހިނދު ގުނާ &lt;= 10 ... ނިމުނީ</code></td>
             </tr>
             <tr>
-              <td><span class="badge-kw">ކޮންމެ</span></td>
-              <td>for-each</td>
+              <td><span class="badge-kw">ކޮންމެ ... ތެރޭގައި</span></td>
+              <td>for ... in</td>
               <td><span class="badge-cat">ލޫޕް</span></td>
               <td><code>ކޮންމެ އެތި ތެރޭގައި ލިސްޓު ... ނިމުނީ</code></td>
             </tr>
@@ -344,13 +534,37 @@
               <td><span class="badge-kw">ގެނޭ</span></td>
               <td>import</td>
               <td><span class="badge-cat">މޮޑިއުލް</span></td>
-              <td><code>ގެނޭ "ހިސާބު"</code></td>
+              <td><code>ގެނޭ "ޑޭޓާބޭސް"</code></td>
             </tr>
             <tr>
-              <td><span class="badge-kw">އާން / ނޫން</span></td>
-              <td>true / false</td>
-              <td><span class="badge-cat">ބޫލިއަން</span></td>
-              <td><code>ކަނޑައަޅާ ތެދު = އާން</code></td>
+              <td><span class="badge-kw">ހުޅުވާ</span></td>
+              <td>open / connect</td>
+              <td><span class="badge-cat">ޑޭޓާބޭސް</span></td>
+              <td><code>ކަނޑައަޅާ ޑީބީ = ހުޅުވާ("app.db")</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">ސާވަރު</span></td>
+              <td>serve</td>
+              <td><span class="badge-cat">ނެޓްވޯކް</span></td>
+              <td><code>ސާވަރު(8080, ރައުޓަރ)</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">މިއަދުގެ_ނަކަތް</span></td>
+              <td>get_nakaiy</td>
+              <td><span class="badge-cat">ޘަޤާފަތް</span></td>
+              <td><code>ކަނޑައަޅާ ނ = މިއަދުގެ_ނަކަތް()</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">މިއަދުގެ_ވަގުތު</span></td>
+              <td>prayer_times</td>
+              <td><span class="badge-cat">ޘަޤާފަތް</span></td>
+              <td><code>މިއަދުގެ_ވަގުތު("މާލެ")</code></td>
+            </tr>
+            <tr>
+              <td><span class="badge-kw">އަދަދު_ބަހަށް</span></td>
+              <td>num_to_words</td>
+              <td><span class="badge-cat">ތާނަ</span></td>
+              <td><code>އަދަދު_ބަހަށް(125)</code></td>
             </tr>
           </tbody>
         </table>
@@ -362,19 +576,20 @@
   <footer class="app-footer">
     <div class="container footer-content">
       <div class="footer-brand">
-        <span class="flag">🇲🇻</span> <strong>DhiCode (ދިވެހި ކޯޑު)</strong>
+        <span class="flag">🇲🇻</span> <strong>DhiCode (ދިވެހި ކޯޑު) v0.4.0</strong>
       </div>
       <p>
-        ހުރިހާ ދިވެހިންނަށް ހިލޭ އަދި އޯޕަންސޯސްކޮށް ލިބޭނެހެން އުފައްދާފައިވާ ޕްރޮގްރާމިންގ ލެންގުއޭޖެއް.<br>
+        ހުރިހާ ދިވެހިންނަށް ހިލޭ އަދި އޯޕަންސޯސްކޮށް ލިބޭނެހެން އުފައްދާފައިވާ ޒަމާނީ ޕްރޮގްރާމިންގ ލެންގުއޭޖެއް.<br>
         Dedicated to the public domain under Creative Commons CC0 1.0 Universal.
       </p>
       <ul class="footer-links">
+        <li><a href="tutorial.html">އެކަޑަމީ (Tutorial)</a></li>
         <li><a href="https://github.com/siyamex/DhiCode" target="_blank">GitHub Repository</a></li>
         <li><a href="https://github.com/siyamex/DhiCode/issues" target="_blank">ރިޕޯޓުކުރޭ (Issues)</a></li>
         <li><a href="https://github.com/siyamex/DhiCode/blob/main/LICENSE" target="_blank">ލައިސަންސް (License)</a></li>
       </ul>
-      <p style="font-size: 0.8rem; color: #475569;">
-        Made with ❤️ for Maldives by <a href="https://github.com/siyamex" target="_blank" style="color: #64748b;">siyamex</a>
+      <p style="font-size: 0.8rem; color: #64748b;">
+        Made with ❤️ for the Maldives by <a href="https://github.com/siyamex" target="_blank" style="color: var(--primary); font-weight: 600;">siyamex</a>
       </p>
     </div>
   </footer>
@@ -382,5 +597,19 @@
   <!-- Scripts -->
   <script src="examples.js"></script>
   <script src="app.js"></script>
+  <script>
+    // Dual Syntax Comparison Tab Switcher
+    const syntaxTabs = document.querySelectorAll("#syntax-tabs .syntax-tab-btn");
+    syntaxTabs.forEach(btn => {
+      btn.addEventListener("click", () => {
+        syntaxTabs.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const snippetId = btn.dataset.snippet;
+        document.querySelectorAll(".syntax-grid").forEach(grid => {
+          grid.style.display = grid.id === `snippet-${snippetId}` ? "grid" : "none";
+        });
+      });
+    });
+  </script>
 </body>
 </html>
