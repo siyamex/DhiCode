@@ -1,0 +1,123 @@
+# DHicode Comprehensive Feature Matrix
+
+**Status Key:**
+- **Existing (✅)**: Fully implemented, tested, and actively functional.
+- **Partial (🟡)**: Implemented in prototype form, partially supported in one engine, or requires expansion.
+- **Missing (❌)**: Not yet implemented in the codebase.
+- **Target**: Intended target milestone / architectural goal.
+
+---
+
+## 1. Core Language & Syntax
+
+| Feature | Existing | Partial | Missing | Target |
+| :--- | :---: | :---: | :---: | :--- |
+| **Dhivehi / Thaana Syntax** | ✅ | | | Core language design with native Thaana characters |
+| **Dual English Keywords** | | 🟡 | | Uniform lexer mapping for English keywords (`if`, `let`, `fn`, etc.) |
+| **Unicode-First Identifiers** | ✅ | | | Support for Thaana, Latin, Arabic, and international scripts |
+| **Comments (Line & Block)** | ✅ | | | `//` single-line and `/* ... */` multi-line |
+| **Mutable Variables (`ކަނޑައަޅާ`)** | ✅ | | | Dynamic assignment and re-assignment |
+| **Constants / Immutable (`ދާއިމީ`)** | | | ❌ | Immutable variable declarations |
+| **Multiple Assignment & Destructuring** | | | ❌ | `ކަނޑައަޅާ [a, b] = [1, 2]` |
+| **Static Type Annotations** | | | ❌ | Optional typing: `އުމުރު: Integer = 25` |
+| **Type Inference Engine** | | 🟡 | | Dynamic type inference at runtime; target static inference |
+| **First-Class Functions (`ވަޒީފާ`)** | ✅ | | | Lexical closures, higher-order functions, recursion |
+| **Default & Named Parameters** | | | ❌ | `ވަޒީފާ ހަދާ(ނަން, އުމުރު = 18)` |
+| **Variadic Arguments (`...args`)** | | | ❌ | Variable-length function argument lists |
+| **Anonymous Functions / Lambdas** | | 🟡 | | Target lightweight arrow syntax `(x) => x * 2` |
+| **Pipeline Operator (`\|>`)** | | | ❌ | Functional pipeline `data \|> filter(...) \|> map(...)` |
+| **Object-Oriented Classes** | | | ❌ | `class`, `constructor`, `methods`, `inheritance` |
+| **Structs / Records** | | | ❌ | Lightweight typed data structures |
+| **Enums with Associated Values** | | | ❌ | Tagged unions / enums |
+| **Generics (`List<T>`)** | | | ❌ | Generic functions, structs, and interfaces |
+| **Pattern Matching (`match`)** | | | ❌ | Structural pattern matching with guards |
+| **Exception Handling (`try/catch/throw`)**| ✅ | | | `މަސައްކަތްކުރޭ`, `ކުށެއް_ފެނިއްޖެނަމަ`, `އުކާލާ` |
+| **Result & Option Monads** | | | ❌ | `Result<T, E>` and `Option<T>` for zero-crash safety |
+
+---
+
+## 2. Operators & Expressions
+
+| Feature | Existing | Partial | Missing | Target |
+| :--- | :---: | :---: | :---: | :--- |
+| **Arithmetic (`+`, `-`, `*`, `/`, `%`)** | ✅ | | | Standard numeric operations with Pratt parser |
+| **Exponentiation (`**`)** | | 🟡 | | `ބާރު()` available in stdlib; target infix `**` |
+| **Comparison (`==`, `!=`, `<`, `>`, `<=`, `>=`)** | ✅ | | | Value and identity equality |
+| **Logical (`އަދި` / `&&`, `ނުވަތަ` / `\|\|`, `!`)** | ✅ | | | Short-circuit evaluation |
+| **Bitwise (`&`, `\|`, `^`, `~`, `<<`, `>>`)** | | | ❌ | Low-level bitwise manipulation |
+| **Compound Assignment (`+=`, `-=`, etc.)** | | | ❌ | Shorthand inplace mutations |
+| **Null Coalescing (`??`)** | | | ❌ | Safe fallback for `ހުސް` (null) |
+| **Optional Chaining (`?.`)** | | | ❌ | Safe nested property traversal |
+| **Range Operator (`..`)** | | | ❌ | Range generation for loops: `1..10` |
+
+---
+
+## 3. Data Types & Collections
+
+| Feature | Existing | Partial | Missing | Target |
+| :--- | :---: | :---: | :---: | :--- |
+| **Integers & Floats** | ✅ | | | `DhicodeNumber` (unified 64-bit precision) |
+| **Strings (UTF-8 Native)** | ✅ | | | Unicode strings with escape sequences |
+| **String Interpolation** | | | ❌ | `"މަރުޙަބާ {ނަން}"` |
+| **Booleans (`އާން` / `ނޫން`)** | ✅ | | | Native truthy/falsy evaluation |
+| **Null Type (`ހުސް`)** | ✅ | | | Native null representation |
+| **Dynamic Lists (`[...]`)** | ✅ | | | Indexing, negative indexing, append, pop, len |
+| **Hash Dictionaries (`{...}`)** | ✅ | | | Key-value pairs with string indexing |
+| **Sets & HashSets** | | | ❌ | Unique collections with set algebra |
+| **Tuples** | | | ❌ | Fixed-size heterogeneous sequences |
+| **Queues, Deques & Stacks** | | 🟡 | | Array-based append/pop; target dedicated stdlib types |
+| **BigInteger & Decimal** | | | ❌ | Arbitrary precision arithmetic |
+
+---
+
+## 4. Standard Library Modules
+
+| Feature | Existing | Partial | Missing | Target |
+| :--- | :---: | :---: | :---: | :--- |
+| **Math (`ހިސާބު`)** | ✅ | | | Sqrt, pow, round, floor, ceil, min, max, random, pi |
+| **File System (`ފައިލް`)** | ✅ | | | Read, write, append, exists |
+| **Directory Operations** | | | ❌ | Directory create, list, delete, walk |
+| **Time & Date (`ވަގުތު`)** | ✅ | | | Timestamp, sleep, formatted date strings |
+| **System Info & Env (`ނިޒާމު`)** | ✅ | | | CLI arguments, exit, getenv |
+| **Network & HTTP Client (`ނެޓްވޯކް`)** | ✅ | | | HTTP GET, POST, JSON parse/stringify, URL codec |
+| **HTTP Web Server** | | | ❌ | Native micro-framework for web APIs |
+| **WebSocket Client & Server** | | | ❌ | Real-time bidirectional socket communication |
+| **Nakaiy Calendar (`ނަކަތް`)** | ✅ | | | 27 Nakaiy database, daily lookup, climate traits |
+| **Prayer Times (`ނަމާދު`)** | ✅ | | | Solar calculation for all Maldivian atolls |
+| **Thaana Words & Collation (`ތާނަ_ހިސާބު`)** | ✅ | | | Number-to-words, Thaana alphabetical sorting |
+| **Regular Expressions (`ރެގެކްސް`)** | | | ❌ | Unicode-aware pattern matching and replacement |
+| **Cryptography (`ކްރިޕްޓޯ`)** | | | ❌ | SHA-256, SHA-512, HMAC, AES encryption |
+| **Database Abstraction (`ޑޭޓާބޭސް`)** | | | ❌ | SQLite, PostgreSQL, key-value stores |
+| **AI & Machine Learning (`އޭއައި`)** | | | ❌ | Tensors, GGUF/ONNX inference, embeddings, agents |
+
+---
+
+## 5. Execution Backends & Runtimes
+
+| Feature | Existing | Partial | Missing | Target |
+| :--- | :---: | :---: | :---: | :--- |
+| **Tree-Walk Interpreter** | ✅ | | | Fast prototyping, development, scripting |
+| **Bytecode Compiler & VM** | | | ❌ | Fast, portable bytecode VM with opcode dispatch |
+| **LLVM Native Compiler (AOT)** | | 🟡 | | C++ LLVM backend generates `.o` for core arithmetic/functions |
+| **WebAssembly Runtime (WASM)** | ✅ | | | Pyodide in-browser runtime for web playground |
+| **Standalone Executable Packager** | ✅ | | | `dhicode build` generates standalone `.pyz` & `.bat` |
+| **Async / Await Event Loop** | | | ❌ | Non-blocking asynchronous I/O |
+| **Multi-threading / Worker Tasks** | | | ❌ | Concurrency, thread pools, channels |
+
+---
+
+## 6. Developer Tooling & Ecosystem
+
+| Feature | Existing | Partial | Missing | Target |
+| :--- | :---: | :---: | :---: | :--- |
+| **CLI Runner (`dhicode run`)** | ✅ | | | Command-line file execution |
+| **Interactive REPL (`dhicode repl`)** | ✅ | | | Interactive Dhivehi shell with UTF-8 support |
+| **Code Formatter (`dhicode fmt`)** | ✅ | | | Canonical 4-space indentation and spacing |
+| **Language Server Protocol (`dhicode lsp`)**| ✅ | | | Diagnostics, hover docs, completions, format-on-save |
+| **VS Code Extension** | ✅ | | | Syntax highlighting, snippets, hover, formatter, runner |
+| **Package Manager (`dhpm`)** | | | ❌ | Dependency management, `dhicode.toml` manifest |
+| **Interactive Web Playground** | ✅ | | | Live in-browser dual-layer syntax-highlighted IDE |
+| **Dhivehi Coding Academy** | ✅ | | | 8-lesson interactive self-grading curriculum |
+| **Test Runner (`dhicode test`)** | | 🟡 | | Python unittest runner exists; target native `dhicode test` CLI |
+| **Linter (`dhicode lint`)** | | | ❌ | Static analysis for unused variables and code smells |
+| **Documentation Generator (`dhicode doc`)**| | | ❌ | Automated HTML/Markdown doc generation from source |
